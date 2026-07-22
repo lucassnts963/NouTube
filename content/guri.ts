@@ -1,4 +1,4 @@
-import { getGuriCss, normalizeGuriConfig, type GuriConfig } from '../lib/guri'
+import { getGuriCss, isAllowedLocation, normalizeGuriConfig, type GuriConfig } from '../lib/guri'
 
 export const noutubeGuriEvent = 'noutube:guri'
 const guriStyleId = 'noutube-guri'
@@ -48,10 +48,55 @@ function applyRestrictedMode() {
   }
 }
 
+// "Só isso aqui": redirect anything outside the allow-list back to the first
+// allowed channel/playlist. This is the reliable enforcement (CSS just hides
+// the entry points). YouTube is an SPA, so we watch its navigation events plus
+// poll the URL as a safety net.
+function safeHomeUrl(): string | null {
+  const first = guri.allowList?.[0]
+  return first?.url || null
+}
+
+function enforceAllowList() {
+  if (!guri.enabled || !guri.allowListMode || !guri.allowList?.length) return
+  const host = location.host
+  if (host !== 'm.youtube.com' && host !== 'www.youtube.com') return
+  if (isAllowedLocation(location.pathname, location.search, guri.allowList as any)) return
+
+  const target = safeHomeUrl()
+  if (!target) return
+  try {
+    // Avoid redirect loops when already on the safe-home path.
+    if (new URL(target).pathname === location.pathname) return
+  } catch {
+    // ignore
+  }
+  location.replace(target)
+}
+
+let guardStarted = false
+function startAllowListGuard() {
+  if (guardStarted) return
+  guardStarted = true
+  const check = () => enforceAllowList()
+  window.addEventListener('yt-navigate-finish', check)
+  window.addEventListener('yt-navigate-start', check)
+  window.addEventListener('popstate', check)
+  let lastHref = location.href
+  setInterval(() => {
+    if (location.href !== lastHref) {
+      lastHref = location.href
+      check()
+    }
+  }, 400)
+  check()
+}
+
 export function setGuri(next?: Partial<GuriConfig>): GuriContentConfig {
   guri = stripPin(normalizeGuriConfig(next))
   applyGuriStyle()
   applyRestrictedMode()
+  enforceAllowList()
   window.dispatchEvent(new CustomEvent(noutubeGuriEvent, { detail: guri }))
   return guri
 }
@@ -63,5 +108,6 @@ export function initGuri() {
   }
   applyGuriStyle()
   applyRestrictedMode()
+  startAllowListGuard()
   window.addEventListener(noutubeGuriEvent, applyGuriStyle)
 }

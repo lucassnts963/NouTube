@@ -3,9 +3,22 @@ import { syncObservable } from '@legendapp/state/sync'
 import { ObservablePersistMMKV } from '@legendapp/state/persist-plugins/mmkv'
 import { isWeb } from '@/lib/utils'
 import { getIndexedDBPlugin } from './indexeddb'
-import { createDefaultGuriConfig, isValidGuriPin, type GuriConfig } from '@/lib/guri'
+import {
+  createDefaultGuriConfig,
+  isValidGuriPin,
+  parseAllowItem,
+  type GuriAllowItem,
+  type GuriConfig,
+} from '@/lib/guri'
+import { genId } from '@/lib/utils'
 
-type BoolFlag = 'restrictedMode' | 'hideShorts' | 'hideSearch' | 'hideComments' | 'hideRecommendations'
+type BoolFlag =
+  | 'restrictedMode'
+  | 'hideShorts'
+  | 'hideSearch'
+  | 'hideComments'
+  | 'hideRecommendations'
+  | 'allowListMode'
 
 interface Store extends GuriConfig {
   /** Turn parental mode on, setting the unlock PIN. Returns false on a bad PIN. */
@@ -15,6 +28,9 @@ interface Store extends GuriConfig {
   setPin: (currentPin: string, nextPin: string) => boolean
   verifyPin: (pin: string) => boolean
   setFlag: (flag: BoolFlag, value: boolean) => void
+  /** Add a channel/playlist to the allow-list from a URL. Returns false if unparseable. */
+  addAllowItem: (url: string) => boolean
+  removeAllowItem: (id: string) => void
   snapshot: () => GuriConfig
 }
 
@@ -50,6 +66,26 @@ export const guri$ = observable<Store>({
     guri$[flag].set(value)
   },
 
+  addAllowItem: (url): boolean => {
+    const parsed = parseAllowItem(url)
+    if (!parsed) return false
+    const existing = guri$.allowList.get()
+    if (existing.some((item) => item.type === parsed.type && item.key === parsed.key)) return true
+    const item: GuriAllowItem = {
+      id: genId(),
+      type: parsed.type,
+      key: parsed.key,
+      url: parsed.url,
+      title: defaultAllowTitle(parsed),
+    }
+    guri$.allowList.push(item)
+    return true
+  },
+
+  removeAllowItem: (id) => {
+    guri$.allowList.set(guri$.allowList.get().filter((item) => item.id !== id))
+  },
+
   snapshot: (): GuriConfig => ({
     enabled: guri$.enabled.get(),
     pin: guri$.pin.get(),
@@ -58,8 +94,15 @@ export const guri$ = observable<Store>({
     hideSearch: guri$.hideSearch.get(),
     hideComments: guri$.hideComments.get(),
     hideRecommendations: guri$.hideRecommendations.get(),
+    allowListMode: guri$.allowListMode.get(),
+    allowList: guri$.allowList.get(),
   }),
 })
+
+function defaultAllowTitle(parsed: Pick<GuriAllowItem, 'type' | 'key'>): string {
+  if (parsed.type === 'playlist') return `Playlist ${parsed.key}`
+  return parsed.key.replace(/^channel\//, '').replace(/^c\//, '').replace(/^user\//, '')
+}
 
 /**
  * Snapshot sent to the webview. The PIN is stripped — it must never leak into

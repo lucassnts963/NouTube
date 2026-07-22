@@ -78,7 +78,14 @@
     "disabled": "Modo guri disabled",
     "pinChanged": "PIN updated",
     "pinTooShort": "PIN must be 4 to 8 digits",
-    "pinMismatch": "PINs do not match"
+    "pinMismatch": "PINs do not match",
+    "allowListMode": "Only these (allow-list)",
+    "allowListHint": "When on, only the channels and playlists below (and their videos) can be opened.",
+    "allowEmpty": "No allowed channels or playlists yet.",
+    "allowPlaceholder": "Channel or playlist link",
+    "allowAddCurrent": "Add current page",
+    "allowInvalid": "Paste a channel or playlist link",
+    "allowAdded": "Added to the allow-list"
   },
   "menus": {
     "openInNewTab": "Open in New Tab",

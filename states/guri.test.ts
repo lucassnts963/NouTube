@@ -45,4 +45,16 @@ describe('guri$', () => {
     expect('pin' in snap).toBe(false)
     expect(snap.enabled).toBe(true)
   })
+
+  it('adds and dedupes allow-list items, rejecting junk', () => {
+    guri$.allowList.set([])
+    expect(guri$.addAllowItem('https://m.youtube.com/@Guri')).toBe(true)
+    expect(guri$.addAllowItem('https://m.youtube.com/@Guri')).toBe(true) // dedupe
+    expect(guri$.addAllowItem('https://example.com')).toBe(false)
+    expect(guri$.allowList.get()).toHaveLength(1)
+
+    const id = guri$.allowList.get()[0].id
+    guri$.removeAllowItem(id)
+    expect(guri$.allowList.get()).toHaveLength(0)
+  })
 })

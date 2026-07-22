@@ -68,7 +68,14 @@
     "disabled": "Modo guri desativado",
     "pinChanged": "PIN atualizado",
     "pinTooShort": "O PIN deve ter de 4 a 8 dígitos",
-    "pinMismatch": "Os PINs não coincidem"
+    "pinMismatch": "Os PINs não coincidem",
+    "allowListMode": "Só isso aqui (lista de permitidos)",
+    "allowListHint": "Quando ligado, só os canais e playlists abaixo (e seus vídeos) podem ser abertos.",
+    "allowEmpty": "Nenhum canal ou playlist permitido ainda.",
+    "allowPlaceholder": "Link do canal ou playlist",
+    "allowAddCurrent": "Adicionar página atual",
+    "allowInvalid": "Cole um link de canal ou playlist",
+    "allowAdded": "Adicionado à lista"
   },
   "menus": {
     "edit": "Editar",

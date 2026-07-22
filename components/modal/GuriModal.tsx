@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ScrollView, TextInput, View, useColorScheme } from 'react-native'
+import { Pressable, ScrollView, TextInput, View, useColorScheme } from 'react-native'
 import { useValue } from '@legendapp/state/react'
 import { t } from 'i18next'
 import MaterialIcons from '@react-native-vector-icons/material-icons'
@@ -12,6 +12,7 @@ import { ui$ } from '@/states/ui'
 import { guri$ } from '@/states/guri'
 import { isValidGuriPin } from '@/lib/guri'
 import { showToast } from '@/lib/toast'
+import { useActivePageUrl } from '@/lib/hooks/useActivePageUrl'
 
 const PinInput: React.FC<{ value: string; onChangeText: (v: string) => void; placeholder: string }> = ({
   value,
@@ -67,6 +68,86 @@ const Toggles = () => {
         value={hideRecommendations}
         onPress={() => guri$.setFlag('hideRecommendations', !hideRecommendations)}
       />
+    </View>
+  )
+}
+
+const AllowListSection = () => {
+  const allowListMode = useValue(guri$.allowListMode)
+  const allowList = useValue(guri$.allowList)
+  const activePageUrl = useActivePageUrl()
+  const [url, setUrl] = useState('')
+  const isDark = useColorScheme() !== 'light'
+
+  const add = (candidate: string) => {
+    if (!guri$.addAllowItem(candidate)) {
+      showToast(t('guri.allowInvalid', 'Paste a channel or playlist link'))
+      return
+    }
+    setUrl('')
+    showToast(t('guri.allowAdded', 'Added to the allow-list'))
+  }
+
+  return (
+    <View className="gap-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4">
+      <NouSwitch
+        label={t('guri.allowListMode', "Only these (allow-list)")}
+        value={allowListMode}
+        onPress={() => guri$.setFlag('allowListMode', !allowListMode)}
+      />
+      <NouText className="text-xs text-zinc-500 dark:text-zinc-400">
+        {t('guri.allowListHint', 'When on, only the channels and playlists below (and their videos) can be opened.')}
+      </NouText>
+
+      {allowListMode && (
+        <View className="gap-3">
+          {allowList.length === 0 ? (
+            <NouText className="text-sm text-zinc-500 dark:text-zinc-400">
+              {t('guri.allowEmpty', 'No allowed channels or playlists yet.')}
+            </NouText>
+          ) : (
+            <View className="gap-2">
+              {allowList.map((item) => (
+                <View
+                  key={item.id}
+                  className="flex-row items-center gap-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 px-3 py-2"
+                >
+                  <MaterialIcons
+                    name={item.type === 'playlist' ? 'playlist-play' : 'account-circle'}
+                    size={18}
+                    color="#E5484D"
+                  />
+                  <NouText className="flex-1 text-sm" numberOfLines={1}>
+                    {item.title}
+                  </NouText>
+                  <Pressable onPress={() => guri$.removeAllowItem(item.id)} className="p-1">
+                    <MaterialIcons name="close" size={18} color={isDark ? '#a1a1aa' : '#71717a'} />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <TextInput
+            className="rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100"
+            value={url}
+            onChangeText={setUrl}
+            autoCapitalize="none"
+            keyboardType="url"
+            placeholder={t('guri.allowPlaceholder', 'Channel or playlist link')}
+            placeholderTextColor={isDark ? '#52525b' : '#a1a1aa'}
+            onSubmitEditing={() => url.trim() && add(url.trim())}
+          />
+          <View className="flex-row gap-3">
+            <NouButton variant="outline" onPress={() => activePageUrl && add(activePageUrl)}>
+              {t('guri.allowAddCurrent', 'Add current page')}
+            </NouButton>
+            <NouButton disabled={!url.trim()} onPress={() => add(url.trim())}>
+              {t('buttons.add', 'Add')}
+            </NouButton>
+          </View>
+        </View>
+      )}
     </View>
   )
 }
@@ -151,6 +232,8 @@ export const GuriModal = () => {
         </View>
 
         <Toggles />
+
+        <AllowListSection />
 
         {!enabled ? (
           <View className="gap-3">

@@ -2,6 +2,17 @@
 // content bundle. Keep this file dependency-free so content/guri.ts can import
 // it into the webview bundle (same pattern as lib/user-styles.ts).
 
+/** A channel or playlist the child is allowed to watch in "só isso aqui" mode. */
+export interface GuriAllowItem {
+  id: string
+  type: 'channel' | 'playlist'
+  /** Canonical matcher: 'channel/UC…' | '@handle' | 'c/name' | 'user/name' | playlist id. */
+  key: string
+  title: string
+  /** Normalized m.youtube.com url to open the item. */
+  url: string
+}
+
 export interface GuriConfig {
   /** Parental mode is active. */
   enabled: boolean
@@ -13,6 +24,9 @@ export interface GuriConfig {
   hideSearch: boolean
   hideComments: boolean
   hideRecommendations: boolean
+  /** "Só isso aqui": only the allow-listed channels/playlists (and videos) are reachable. */
+  allowListMode: boolean
+  allowList: GuriAllowItem[]
 }
 
 export const createDefaultGuriConfig = (): GuriConfig => ({
@@ -23,7 +37,27 @@ export const createDefaultGuriConfig = (): GuriConfig => ({
   hideSearch: true,
   hideComments: true,
   hideRecommendations: false,
+  allowListMode: false,
+  allowList: [],
 })
+
+const normalizeAllowList = (value: unknown): GuriAllowItem[] => {
+  if (!Array.isArray(value)) return []
+  const out: GuriAllowItem[] = []
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object') continue
+    const item = raw as Partial<GuriAllowItem>
+    if ((item.type !== 'channel' && item.type !== 'playlist') || typeof item.key !== 'string' || !item.key) continue
+    out.push({
+      id: typeof item.id === 'string' && item.id ? item.id : item.key,
+      type: item.type,
+      key: item.key,
+      title: typeof item.title === 'string' ? item.title : item.key,
+      url: typeof item.url === 'string' ? item.url : '',
+    })
+  }
+  return out
+}
 
 export const normalizeGuriConfig = (value?: Partial<GuriConfig> | null): GuriConfig => {
   const d = createDefaultGuriConfig()
@@ -37,7 +71,71 @@ export const normalizeGuriConfig = (value?: Partial<GuriConfig> | null): GuriCon
     hideComments: typeof value.hideComments === 'boolean' ? value.hideComments : d.hideComments,
     hideRecommendations:
       typeof value.hideRecommendations === 'boolean' ? value.hideRecommendations : d.hideRecommendations,
+    allowListMode: typeof value.allowListMode === 'boolean' ? value.allowListMode : d.allowListMode,
+    allowList: normalizeAllowList(value.allowList),
   }
+}
+
+/**
+ * Parse a YouTube channel or playlist URL into an allow-list matcher.
+ * Returns null for anything that isn't a pinnable channel/playlist.
+ */
+export const parseAllowItem = (rawUrl: string): Pick<GuriAllowItem, 'type' | 'key' | 'url'> | null => {
+  let u: URL
+  try {
+    u = new URL(rawUrl.trim())
+  } catch {
+    return null
+  }
+  const host = u.host.toLowerCase()
+  if (!/(^|\.)youtube\.com$/.test(host) && host !== 'youtu.be') return null
+
+  const list = u.searchParams.get('list')
+  const path = u.pathname.replace(/\/+$/, '')
+
+  if (list && (path === '' || path === '/playlist' || path === '/watch')) {
+    return { type: 'playlist', key: list, url: `https://m.youtube.com/playlist?list=${list}` }
+  }
+
+  let m: RegExpMatchArray | null
+  if ((m = path.match(/^\/channel\/(UC[\w-]+)/))) {
+    return { type: 'channel', key: `channel/${m[1]}`, url: `https://m.youtube.com/channel/${m[1]}` }
+  }
+  if ((m = path.match(/^\/(@[\w.-]+)/))) {
+    return { type: 'channel', key: m[1], url: `https://m.youtube.com/${m[1]}` }
+  }
+  if ((m = path.match(/^\/(c\/[\w.-]+)/))) {
+    return { type: 'channel', key: m[1], url: `https://m.youtube.com/${m[1]}` }
+  }
+  if ((m = path.match(/^\/(user\/[\w.-]+)/))) {
+    return { type: 'channel', key: m[1], url: `https://m.youtube.com/${m[1]}` }
+  }
+  return null
+}
+
+/**
+ * Whether a location is reachable under the allow-list. Watch pages are always
+ * allowed (a video can't be attributed to a channel cheaply); with search/home
+ * hidden, the child only reaches videos through allow-listed content.
+ */
+export const isAllowedLocation = (pathname: string, searchStr: string, allowList: GuriAllowItem[]): boolean => {
+  const path = pathname.replace(/\/+$/, '') || '/'
+  if (path === '/watch') return true
+  let list: string | null = null
+  try {
+    list = new URLSearchParams(searchStr || '').get('list')
+  } catch {
+    list = null
+  }
+  for (const item of allowList) {
+    if (item.type === 'playlist') {
+      if (list && list === item.key) return true
+    } else {
+      const k = '/' + item.key
+      if (path === k || path.startsWith(k + '/')) return true
+    }
+  }
+  return false
 }
 
 export const isValidGuriPin = (pin: string): boolean => /^\d{4,8}$/.test(pin)
@@ -87,6 +185,27 @@ const RECOMMENDATIONS_CSS = `
   }
 `
 
+// "Só isso aqui": strip every way out of the allow-listed content — the bottom
+// pivot bar (Home/Explore/Shorts/Subscriptions/Library), the home logo and the
+// search entry. Navigation is still enforced by the redirect guard in
+// content/guri.ts; this just removes the temptation.
+const ALLOWLIST_CSS = `
+  ytm-pivot-bar-renderer,
+  ytd-mini-guide-renderer,
+  #guide-button,
+  ytm-mobile-topbar-renderer .topbar-logo,
+  ytd-topbar-logo-renderer,
+  a[href="/"],
+  ytm-searchbox,
+  .searchbox,
+  ytd-searchbox,
+  #search-icon-legacy,
+  button[aria-label="Search" i],
+  button[aria-label="Pesquisar" i] {
+    display: none !important;
+  }
+`
+
 /** CSS injected into the webview to enforce the enabled restrictions. */
 export const getGuriCss = (config?: Partial<GuriConfig> | null): string => {
   const c = normalizeGuriConfig(config)
@@ -96,5 +215,6 @@ export const getGuriCss = (config?: Partial<GuriConfig> | null): string => {
   if (c.hideSearch) parts.push(SEARCH_CSS.trim())
   if (c.hideComments) parts.push(COMMENTS_CSS.trim())
   if (c.hideRecommendations) parts.push(RECOMMENDATIONS_CSS.trim())
+  if (c.allowListMode && c.allowList.length > 0) parts.push(ALLOWLIST_CSS.trim())
   return parts.join('\n\n')
 }
