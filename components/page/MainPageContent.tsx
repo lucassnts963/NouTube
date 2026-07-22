@@ -424,12 +424,14 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
 
   // Enable auto Picture-in-Picture (API 31+) while on a video page, so the
   // webview video pops into a floating window when the user leaves the app.
+  // Disabled entirely while modo guri is on (the kid must not pop the video out).
+  const guriEnabled = useValue(guri$.enabled)
   useEffect(() => {
     if (!isAndroid) return
     const pageType = getPageType(activePageUrl)
-    const isVideoPage = pageType?.type === 'watch' || pageType?.type === 'shorts'
+    const isVideoPage = !guriEnabled && (pageType?.type === 'watch' || pageType?.type === 'shorts')
     void mainClient.setAutoPictureInPicture(isVideoPage, 16, 9)
-  }, [activePageUrl])
+  }, [activePageUrl, guriEnabled])
 
   const toggleShorts = useCallback(
     (hide?: boolean) => {

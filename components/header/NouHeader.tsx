@@ -8,6 +8,7 @@ import { clsx, isAndroid, isIos, isWeb, nIf } from '@/lib/utils'
 import { ui$, updateUrl } from '@/states/ui'
 import { bookmarks$ } from '@/states/bookmarks'
 import { getPageType, getVideoId } from '@/lib/page'
+import { guri$ } from '@/states/guri'
 import { mainClient } from '@/lib/main-client'
 import { toggleStar } from '@/lib/bookmarks'
 import { queue$ } from '@/states/queue'
@@ -113,6 +114,7 @@ export const NouHeader: React.FC<{ getNoutube: () => any }> = ({ getNoutube }) =
   const colorScheme = useColorScheme()
   const isDark = colorScheme !== 'light'
   const headerControlColor = isDark ? colors.icon : colors.iconLight
+  const guriEnabled = useValue(guri$.enabled)
 
   useEffect(() => {
     const webview = getNoutube()
@@ -483,7 +485,9 @@ export const NouHeader: React.FC<{ getNoutube: () => any }> = ({ getNoutube }) =
               systemImage: 'arrow.clockwise',
               handler: reloadPage,
             },
-            ...((isWeb || isAndroid) && (pageType?.type === 'watch' || pageType?.type === 'shorts')
+            ...((isWeb || isAndroid) &&
+            !guriEnabled &&
+            (pageType?.type === 'watch' || pageType?.type === 'shorts')
               ? [
                   {
                     label: t('menus.pip'),

@@ -8,6 +8,7 @@ import { useValue } from '@legendapp/state/react'
 import { NouText } from '../NouText'
 import { RetryImage } from '../image/RetryImage'
 import { player$ } from '@/states/player'
+import { guri$ } from '@/states/guri'
 import type { LocalMedia } from '@/states/local-library'
 
 const blurhash =
@@ -16,6 +17,8 @@ const blurhash =
 const PlayerView: React.FC<{ media: LocalMedia }> = ({ media }) => {
   const isAudio = media.kind === 'audio'
   const videoRef = useRef<VideoView>(null)
+  // No Picture-in-Picture while modo guri is on (the kid must not pop videos out).
+  const pipAllowed = !useValue(guri$.enabled)
 
   const player = useVideoPlayer(
     { uri: media.uri, metadata: { title: media.title, artist: 'GuriTube' } },
@@ -44,7 +47,7 @@ const PlayerView: React.FC<{ media: LocalMedia }> = ({ media }) => {
             <NouText className="flex-1 text-white font-semibold" numberOfLines={1}>
               {media.title}
             </NouText>
-            {!isAudio && (
+            {!isAudio && pipAllowed && (
               <Pressable
                 onPress={() => videoRef.current?.startPictureInPicture()}
                 className="h-10 w-10 items-center justify-center rounded-full active:bg-white/10"
@@ -93,8 +96,8 @@ const PlayerView: React.FC<{ media: LocalMedia }> = ({ media }) => {
               player={player}
               style={{ flex: 1 }}
               contentFit="contain"
-              allowsPictureInPicture
-              startsPictureInPictureAutomatically
+              allowsPictureInPicture={pipAllowed}
+              startsPictureInPictureAutomatically={pipAllowed}
               nativeControls
             />
           )}
