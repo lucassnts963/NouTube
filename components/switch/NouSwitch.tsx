@@ -17,10 +17,10 @@ export const NouSwitch: React.FC<{ className?: string; label: string; value: boo
         value={value}
         onValueChange={(v) => onPress()}
         trackColor={{ false: '#767577', true: '#e9d5ff' }}
-        thumbColor={value ? '#6366f1' : '#f4f3f4'}
+        thumbColor={value ? '#E5484D' : '#f4f3f4'}
         {...Platform.select({
           web: {
-            activeThumbColor: '#6366f1',
+            activeThumbColor: '#E5484D',
           },
         })}
       />

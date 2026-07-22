@@ -21,7 +21,7 @@ export const NouButton = ({
   onPress: () => void
 }>) => {
   const isDisabled = Boolean(disabled || loading)
-  const spinnerColor = variant === 'solid' ? '#ffffff' : variant === 'soft' ? '#4338ca' : '#475569'
+  const spinnerColor = variant === 'solid' ? '#ffffff' : variant === 'soft' ? '#E5484D' : '#475569'
 
   return (
     <TouchableOpacity
@@ -29,8 +29,8 @@ export const NouButton = ({
         'flex-row gap-2 justify-center rounded-full',
         size === '1' && 'py-1 px-3',
         size === '2' && 'py-2 px-6',
-        variant === 'solid' && !isDisabled && 'bg-indigo-600 dark:bg-indigo-500',
-        variant === 'soft' && !isDisabled && 'bg-indigo-100 dark:bg-zinc-800',
+        variant === 'solid' && !isDisabled && 'bg-primary dark:bg-primary',
+        variant === 'soft' && !isDisabled && 'bg-accent-tint dark:bg-zinc-800',
         variant === 'outline' && !isDisabled && 'border border-zinc-300 dark:border-zinc-700 bg-transparent',
         variant === 'solid' && isDisabled && 'bg-zinc-300 dark:bg-zinc-700',
         variant === 'soft' && isDisabled && 'bg-zinc-200 dark:bg-zinc-800/80',
@@ -44,7 +44,7 @@ export const NouButton = ({
       <NouText
         className={clsx(
           variant === 'solid' && !isDisabled && 'text-white',
-          variant === 'soft' && !isDisabled && 'text-indigo-700 dark:text-zinc-100',
+          variant === 'soft' && !isDisabled && 'text-primary dark:text-zinc-100',
           variant === 'outline' && !isDisabled && 'text-zinc-700 dark:text-zinc-200',
           isDisabled && 'text-zinc-500 dark:text-zinc-400',
           textClassName,

@@ -77,7 +77,7 @@ const ShareModalContent: React.FC<{ pageUrl: string; videoUrl: string }> = ({ pa
               <MaterialIcons
                 name={includePosition ? 'check-box' : 'check-box-outline-blank'}
                 size={20}
-                color={includePosition ? '#6366f1' : '#71717a'}
+                color={includePosition ? '#E5484D' : '#71717a'}
               />
               <NouText className="text-sm">{t('modals.shareIncludePosition', 'Include current position')}</NouText>
             </Pressable>,

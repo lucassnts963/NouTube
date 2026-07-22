@@ -233,7 +233,7 @@ export const ToolsModal = () => {
         {!!playlistId && (
           <View className="gap-3">
             <View className="flex-row items-center gap-2">
-              <MaterialIcons name="playlist-play" size={20} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+              <MaterialIcons name="playlist-play" size={20} color={isDark ? '#F08A8D' : '#E5484D'} />
               <NouText className="text-base font-semibold">
                 {t('modals.downloadPlaylist', 'Download whole playlist')}
               </NouText>
@@ -254,7 +254,7 @@ export const ToolsModal = () => {
                     className={
                       playlistBusy
                         ? 'h-11 w-11 items-center justify-center rounded-full bg-zinc-300 dark:bg-zinc-700'
-                        : 'h-11 w-11 items-center justify-center rounded-full bg-indigo-600 dark:bg-indigo-500 active:bg-indigo-700 dark:active:bg-indigo-400'
+                        : 'h-11 w-11 items-center justify-center rounded-full bg-primary dark:bg-primary active:bg-accent-hover dark:active:bg-accent-hover'
                     }
                   >
                     <MaterialIcons name="download" size={20} color="#fff" />
@@ -297,7 +297,7 @@ export const ToolsModal = () => {
                   </View>
                   <Pressable
                     onPress={() => handleDownload(opt.formatId)}
-                    className="h-11 w-11 items-center justify-center rounded-full bg-indigo-600 dark:bg-indigo-500 active:bg-indigo-700 dark:active:bg-indigo-400"
+                    className="h-11 w-11 items-center justify-center rounded-full bg-primary dark:bg-primary active:bg-accent-hover dark:active:bg-accent-hover"
                   >
                     <MaterialIcons name="download" size={20} color="#fff" />
                   </Pressable>

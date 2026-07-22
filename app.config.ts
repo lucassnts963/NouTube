@@ -60,7 +60,7 @@ module.exports = ({ config }: { config: ExpoConfig }) => {
           backgroundColor: '#f9fafb',
           dark: {
             image: './assets/images/splash-icon.png',
-            backgroundColor: '#27272a',
+            backgroundColor: '#0C0C0F',
           },
         },
       ],

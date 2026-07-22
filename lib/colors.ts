@@ -1,7 +1,8 @@
 export const colors = {
-  text: '#f1f5f9',
-  bg: '#27272a',
-  icon: '#f1f5f9',
+  // Brand (elucas.dev / GuriTube): dark surface + light foreground.
+  text: '#ECECEF',
+  bg: '#16161A',
+  icon: '#ECECEF',
   underlay: '#4b5563',
   iconLight: '#334155',
   iconLightStrong: '#0f172a',

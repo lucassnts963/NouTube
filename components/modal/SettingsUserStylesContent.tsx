@@ -304,10 +304,10 @@ export const SettingsUserStylesContent = () => {
                     value={builtins[definition.id]?.enabled ?? true}
                     onValueChange={() => userStyles$.toggleBuiltin(definition.id)}
                     trackColor={{ false: '#27272a', true: '#3730a3' }}
-                    thumbColor={(builtins[definition.id]?.enabled ?? true) ? '#818cf8' : '#71717a'}
+                    thumbColor={(builtins[definition.id]?.enabled ?? true) ? '#E5484D' : '#71717a'}
                     {...Platform.select({
                       web: {
-                        activeThumbColor: '#818cf8',
+                        activeThumbColor: '#E5484D',
                       },
                       ios: {
                         style: { transform: [{ scale: 0.8 }] },
@@ -338,10 +338,10 @@ export const SettingsUserStylesContent = () => {
                     value={builtinScripts[definition.id]?.enabled ?? false}
                     onValueChange={() => userStyles$.toggleBuiltinScript(definition.id)}
                     trackColor={{ false: '#27272a', true: '#3730a3' }}
-                    thumbColor={(builtinScripts[definition.id]?.enabled ?? false) ? '#818cf8' : '#71717a'}
+                    thumbColor={(builtinScripts[definition.id]?.enabled ?? false) ? '#E5484D' : '#71717a'}
                     {...Platform.select({
                       web: {
-                        activeThumbColor: '#818cf8',
+                        activeThumbColor: '#E5484D',
                       },
                       ios: {
                         style: { transform: [{ scale: 0.8 }] },
@@ -358,10 +358,10 @@ export const SettingsUserStylesContent = () => {
           <NouText className={subheaderCls}>{t('settings.userStyles.custom.label')}</NouText>
           <Pressable
             onPress={() => setDraft(createDraft())}
-            className="flex-row items-center gap-1 rounded-full bg-indigo-600/10 px-3 py-1.5 active:bg-indigo-600/20"
+            className="flex-row items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 active:bg-accent-hover/20"
           >
-            <MaterialIcons name="add" color="#818cf8" size={18} />
-            <NouText className="text-xs font-semibold text-indigo-400">{t('settings.userStyles.add')}</NouText>
+            <MaterialIcons name="add" color="#E5484D" size={18} />
+            <NouText className="text-xs font-semibold text-primary">{t('settings.userStyles.add')}</NouText>
           </Pressable>
         </View>
         <View className={surfaceCls}>
@@ -394,10 +394,10 @@ export const SettingsUserStylesContent = () => {
                 value={style.enabled}
                 onValueChange={() => userStyles$.toggleCustomStyle(style.id)}
                 trackColor={{ false: '#27272a', true: '#3730a3' }}
-                thumbColor={style.enabled ? '#818cf8' : '#71717a'}
+                thumbColor={style.enabled ? '#E5484D' : '#71717a'}
                 {...Platform.select({
                   web: {
-                    activeThumbColor: '#818cf8',
+                    activeThumbColor: '#E5484D',
                   },
                   ios: {
                     style: { transform: [{ scale: 0.8 }] },
@@ -414,10 +414,10 @@ export const SettingsUserStylesContent = () => {
               <NouText className={subheaderCls}>{t('settings.userStyles.scripts.label')}</NouText>
               <Pressable
                 onPress={() => setScriptDraft(createScriptDraft())}
-                className="flex-row items-center gap-1 rounded-full bg-indigo-600/10 px-3 py-1.5 active:bg-indigo-600/20"
+                className="flex-row items-center gap-1 rounded-full bg-primary/10 px-3 py-1.5 active:bg-accent-hover/20"
               >
-                <MaterialIcons name="add" color="#818cf8" size={18} />
-                <NouText className="text-xs font-semibold text-indigo-400">{t('settings.userStyles.scripts.add')}</NouText>
+                <MaterialIcons name="add" color="#E5484D" size={18} />
+                <NouText className="text-xs font-semibold text-primary">{t('settings.userStyles.scripts.add')}</NouText>
               </Pressable>
             </View>
             <View className={surfaceCls}>
@@ -450,7 +450,7 @@ export const SettingsUserStylesContent = () => {
                     script.pinToHeader,
                     <MaterialIcons
                       name="push-pin"
-                      color={script.enabled ? '#818cf8' : '#71717a'}
+                      color={script.enabled ? '#E5484D' : '#71717a'}
                       size={18}
                       style={{ marginRight: 12 }}
                     />,
@@ -459,10 +459,10 @@ export const SettingsUserStylesContent = () => {
                     value={script.enabled}
                     onValueChange={() => userStyles$.toggleCustomScript(script.id)}
                     trackColor={{ false: '#27272a', true: '#3730a3' }}
-                    thumbColor={script.enabled ? '#818cf8' : '#71717a'}
+                    thumbColor={script.enabled ? '#E5484D' : '#71717a'}
                     {...Platform.select({
                       web: {
-                        activeThumbColor: '#818cf8',
+                        activeThumbColor: '#E5484D',
                       },
                       ios: {
                         style: { transform: [{ scale: 0.8 }] },
@@ -481,8 +481,8 @@ export const SettingsUserStylesContent = () => {
           <View className="pb-4">
             <View>
               <View className="flex-row items-center gap-3">
-                <View className="h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/10">
-                  <MaterialIcons name="auto-fix-high" color="#818cf8" size={20} />
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                  <MaterialIcons name="auto-fix-high" color="#E5484D" size={20} />
                 </View>
                 <NouText className="text-xl font-bold tracking-tight">
                   {draft.id ? t('settings.userStyles.editTitle') : t('settings.userStyles.addTitle')}
@@ -567,8 +567,8 @@ export const SettingsUserStylesContent = () => {
             <ScrollView className="max-h-[80vh]">
               <View className="p-6">
                 <View className="flex-row items-center gap-3">
-                  <View className="h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/10">
-                    <MaterialIcons name="auto-fix-high" color="#818cf8" size={20} />
+                  <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <MaterialIcons name="auto-fix-high" color="#E5484D" size={20} />
                   </View>
                   <NouText className="text-xl font-bold tracking-tight">
                     {draft.id ? t('settings.userStyles.editTitle') : t('settings.userStyles.addTitle')}
@@ -657,8 +657,8 @@ export const SettingsUserStylesContent = () => {
           <View className="pb-4">
             <View>
               <View className="flex-row items-center gap-3">
-                <View className="h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/10">
-                  <MaterialIcons name="code" color="#818cf8" size={20} />
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                  <MaterialIcons name="code" color="#E5484D" size={20} />
                 </View>
                 <NouText className="text-xl font-bold tracking-tight">
                   {scriptDraft.id ? t('settings.userStyles.scripts.editTitle') : t('settings.userStyles.scripts.addTitle')}
@@ -691,10 +691,10 @@ export const SettingsUserStylesContent = () => {
                   value={scriptDraft.pinToHeader}
                   onValueChange={(pinToHeader) => setScriptDraft((value) => (value ? { ...value, pinToHeader } : value))}
                   trackColor={{ false: '#27272a', true: '#3730a3' }}
-                  thumbColor={scriptDraft.pinToHeader ? '#818cf8' : '#71717a'}
+                  thumbColor={scriptDraft.pinToHeader ? '#E5484D' : '#71717a'}
                   {...Platform.select({
                     web: {
-                      activeThumbColor: '#818cf8',
+                      activeThumbColor: '#E5484D',
                     },
                     ios: {
                       style: { transform: [{ scale: 0.8 }] },
@@ -710,7 +710,7 @@ export const SettingsUserStylesContent = () => {
                   </NouText>
                   <Pressable
                     onPress={onRunScript}
-                    className="h-8 flex-row items-center gap-1.5 rounded-lg bg-indigo-600 px-3 active:bg-indigo-700"
+                    className="h-8 flex-row items-center gap-1.5 rounded-lg bg-primary px-3 active:bg-accent-hover"
                   >
                     <MaterialIcons name="play-arrow" color="white" size={16} />
                     <NouText className="text-xs font-semibold" style={{ color: 'white' }}>
@@ -788,8 +788,8 @@ export const SettingsUserStylesContent = () => {
             >
               <View className="p-6">
                 <View className="flex-row items-center gap-3">
-                  <View className="h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/10">
-                    <MaterialIcons name="code" color="#818cf8" size={20} />
+                  <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <MaterialIcons name="code" color="#E5484D" size={20} />
                   </View>
                   <NouText className="text-xl font-bold tracking-tight">
                     {scriptDraft.id ? t('settings.userStyles.scripts.editTitle') : t('settings.userStyles.scripts.addTitle')}
@@ -822,10 +822,10 @@ export const SettingsUserStylesContent = () => {
                     value={scriptDraft.pinToHeader}
                     onValueChange={(pinToHeader) => setScriptDraft((value) => (value ? { ...value, pinToHeader } : value))}
                     trackColor={{ false: '#27272a', true: '#3730a3' }}
-                    thumbColor={scriptDraft.pinToHeader ? '#818cf8' : '#71717a'}
+                    thumbColor={scriptDraft.pinToHeader ? '#E5484D' : '#71717a'}
                     {...Platform.select({
                       web: {
-                        activeThumbColor: '#818cf8',
+                        activeThumbColor: '#E5484D',
                       },
                       ios: {
                         style: { transform: [{ scale: 0.8 }] },
@@ -841,7 +841,7 @@ export const SettingsUserStylesContent = () => {
                     </NouText>
                     <Pressable
                       onPress={onRunScript}
-                      className="h-8 flex-row items-center gap-1.5 rounded-lg bg-indigo-600 px-3 active:bg-indigo-700"
+                      className="h-8 flex-row items-center gap-1.5 rounded-lg bg-primary px-3 active:bg-accent-hover"
                     >
                       <MaterialIcons name="play-arrow" color="white" size={16} />
                       <NouText className="text-xs font-semibold" style={{ color: 'white' }}>
@@ -917,7 +917,7 @@ export const SettingsUserStylesContent = () => {
           <View className="p-6">
             <View className="flex-row items-center gap-3">
               <View className="h-10 w-10 items-center justify-center rounded-xl bg-zinc-200 dark:bg-zinc-950">
-                <MaterialIcons name="code" color="#818cf8" size={20} />
+                <MaterialIcons name="code" color="#E5484D" size={20} />
               </View>
               <View className="flex-1">
                 <NouText className="text-lg font-bold">{t(previewDefinition.labelKey)}</NouText>
@@ -929,7 +929,7 @@ export const SettingsUserStylesContent = () => {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View className="items-start p-4">
                     <NouText
-                      className="font-mono text-[11px] leading-5 text-indigo-700 dark:text-indigo-300"
+                      className="font-mono text-[11px] leading-5 text-primary dark:text-accent-soft"
                       style={{ fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
                     >
                       {cleanCss(previewDefinition.css)}

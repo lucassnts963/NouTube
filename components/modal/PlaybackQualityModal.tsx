@@ -40,7 +40,7 @@ export const PlaybackQualityModal = () => {
                 className={clsx(
                   'min-w-[100px] rounded-xl items-center justify-center',
                   active
-                    ? 'bg-indigo-600 dark:bg-indigo-500'
+                    ? 'bg-primary dark:bg-primary'
                     : 'border-zinc-300 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900',
                 )}
                 textClassName={active ? 'text-white' : 'text-zinc-800 dark:text-zinc-200'}

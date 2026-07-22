@@ -519,14 +519,14 @@ export const NouHeader: React.FC<{ getNoutube: () => any }> = ({ getNoutube }) =
                         className={clsx(
                           'rounded-full px-2 py-1',
                           desktopMode
-                            ? 'bg-indigo-500/20 border border-indigo-400/40'
+                            ? 'bg-primary/20 border border-primary/40'
                             : 'bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700',
                         )}
                       >
                         <NouText
                           className={clsx(
                             'text-[11px] font-medium',
-                            desktopMode ? 'text-indigo-200' : 'text-zinc-400',
+                            desktopMode ? 'text-accent-soft' : 'text-zinc-400',
                           )}
                         >
                           {desktopMode ? t('menus.on') : t('menus.off')}
