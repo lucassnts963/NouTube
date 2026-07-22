@@ -7,6 +7,10 @@ class NouTubeViewModule extends NativeModule {
     throw new Error('extractTakeoutCsvFiles is only available on Android')
   }
 
+  async listPlaylist() {
+    throw new Error('listPlaylist is only available on Android')
+  }
+
   async setSleepTimer() {
     throw new Error('sleep timer is only available on Android')
   }

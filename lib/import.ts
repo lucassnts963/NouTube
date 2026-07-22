@@ -1,11 +1,12 @@
 import { Bookmark, bookmarks$, newBookmark } from '@/states/bookmarks'
 import pp from 'papaparse'
 import * as cheerio from 'cheerio/slim'
-import { getPageType, getVideoThumbnail } from './page'
+import { getPageType, getVideoId, getVideoThumbnail } from './page'
 import { showToast } from './toast'
 import { normalizeUrl } from './url'
 import JSZip from 'jszip'
 import { folders$ } from '@/states/folders'
+import { history$ } from '@/states/history'
 
 async function getOg(
   url: string,
@@ -122,24 +123,152 @@ export async function importCsv(csv: string, filename?: string): Promise<number>
   return bookmarks.length
 }
 
+export interface ParsedHistoryItem {
+  videoId: string
+  url: string
+  title: string
+  thumbnail: string
+  updatedAt: number
+}
+
+/**
+ * A Takeout watch-history export ships either as watch-history.json or
+ * watch-history.html, depending on the format chosen in Takeout.
+ */
+export function isHistoryFilename(name?: string): boolean {
+  if (!name) return false
+  const n = name.toLowerCase()
+  return n.includes('watch-history') && (n.endsWith('.json') || n.endsWith('.html'))
+}
+
+function looksLikeJson(text: string): boolean {
+  const t = text.trimStart()
+  return t.startsWith('[') || t.startsWith('{')
+}
+
+export function parseHistoryJson(text: string): ParsedHistoryItem[] {
+  let data: unknown
+  try {
+    data = JSON.parse(text)
+  } catch {
+    return []
+  }
+  if (!Array.isArray(data)) return []
+
+  const out: ParsedHistoryItem[] = []
+  for (const entry of data as Array<Record<string, any>>) {
+    const titleUrl: unknown = entry?.titleUrl
+    if (typeof titleUrl !== 'string' || !titleUrl.includes('watch?v=')) continue
+    const videoId = getVideoId(titleUrl) || ''
+    if (!videoIdRe.test(videoId)) continue
+
+    // Takeout prefixes the title with a localized "Watched " verb; strip the
+    // common English one so bookmarks read cleanly.
+    let title = typeof entry?.title === 'string' ? entry.title : ''
+    title = title.replace(/^Watched\s+/, '')
+
+    let updatedAt = 0
+    if (typeof entry?.time === 'string') {
+      const t = Date.parse(entry.time)
+      if (!Number.isNaN(t)) updatedAt = t
+    }
+
+    out.push({
+      videoId,
+      url: `https://m.youtube.com/watch?v=${videoId}`,
+      title,
+      thumbnail: getVideoThumbnail(videoId),
+      updatedAt,
+    })
+  }
+  return out
+}
+
+export function parseHistoryHtml(html: string): ParsedHistoryItem[] {
+  const $ = cheerio.load(html)
+  const out: ParsedHistoryItem[] = []
+  const now = Date.now()
+  let index = 0
+  const seen = new Set<string>()
+
+  $('a[href*="watch?v="]').each((_, el) => {
+    const link = $(el)
+    const href = link.attr('href')
+    if (!href) return
+    const videoId = getVideoId(href) || ''
+    if (!videoIdRe.test(videoId)) return
+
+    const title = link.text().trim()
+
+    // The activity cell holds the entry's timestamp as trailing text. Its exact
+    // format is localized, so parse best-effort and otherwise fall back to the
+    // document order (Takeout lists newest first) to keep the timeline sane.
+    let updatedAt = now - index * 1000
+    const cell = link.closest('.content-cell, .outer-cell')
+    const cellText = (cell.length ? cell.text() : '').replace(/\s+/g, ' ')
+    const dateMatch = cellText.match(/[A-Za-z]{3,}\s+\d{1,2},\s+\d{4},?\s+\d{1,2}:\d{2}:\d{2}[^,]*/)
+    if (dateMatch) {
+      const t = Date.parse(dateMatch[0])
+      if (!Number.isNaN(t)) updatedAt = t
+    }
+    index += 1
+
+    if (seen.has(videoId)) return
+    seen.add(videoId)
+
+    out.push({
+      videoId,
+      url: `https://m.youtube.com/watch?v=${videoId}`,
+      title,
+      thumbnail: getVideoThumbnail(videoId),
+      updatedAt,
+    })
+  })
+  return out
+}
+
+export async function importHistory(text: string, filename?: string): Promise<number> {
+  const lower = filename?.toLowerCase()
+  const isJson = lower ? lower.endsWith('.json') : looksLikeJson(text)
+  const items = isJson ? parseHistoryJson(text) : parseHistoryHtml(text)
+  if (!items.length) return 0
+
+  history$.importHistory(items)
+  showToast(`🎉 Imported ${items.length} history items`)
+  return items.length
+}
+
 export async function importZip(zip: JSZip) {
-  const files: JSZip.JSZipObject[] = []
+  const csvFiles: JSZip.JSZipObject[] = []
+  const historyFiles: JSZip.JSZipObject[] = []
   zip.forEach((_, file) => {
     // Folder names inside Takeout are localized, so don't filter by them.
     // importCsv detects the CSV type by row shape and ignores the rest.
-    if (file.name.toLowerCase().endsWith('.csv')) {
-      files.push(file)
+    const lower = file.name.toLowerCase()
+    if (lower.endsWith('.csv')) {
+      csvFiles.push(file)
+    } else if (isHistoryFilename(file.name)) {
+      historyFiles.push(file)
     }
   })
 
   // Process sequentially to save memory
   let total = 0
-  for (const file of files) {
+  for (const file of csvFiles) {
     try {
       const csv = await file.async('string')
       const slugs = file.name.split('/')
       total += await importCsv(csv, slugs.at(-1))
       // Small pause to allow GC to work
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    } catch (e) {
+      console.error(`Failed to process ${file.name} from zip:`, e)
+    }
+  }
+  for (const file of historyFiles) {
+    try {
+      const text = await file.async('string')
+      total += await importHistory(text, file.name.split('/').at(-1))
       await new Promise((resolve) => setTimeout(resolve, 50))
     } catch (e) {
       console.error(`Failed to process ${file.name} from zip:`, e)

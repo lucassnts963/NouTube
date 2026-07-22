@@ -145,6 +145,42 @@ internal class NouYtDlp(private val context: Context) {
     )
   }
 
+  fun listPlaylist(url: String): Map<String, Any> {
+    ensureYoutubeDLInitialized()
+
+    val request = YoutubeDLRequest(url)
+    request.addOption("--flat-playlist")
+    request.addOption("--dump-single-json")
+    request.addOption("-R", "1")
+    request.addOption("--socket-timeout", "10")
+    val response = YoutubeDL.getInstance().execute(request)
+    val json = JSONObject(response.out ?: throw Exception("yt-dlp returned empty playlist output"))
+
+    val entriesJson = json.optJSONArray("entries")
+    val entries = mutableListOf<Map<String, String>>()
+    if (entriesJson != null) {
+      for (i in 0 until entriesJson.length()) {
+        val entry = entriesJson.optJSONObject(i) ?: continue
+        val id = entry.optString("id")
+        if (id.isBlank()) continue
+        val rawUrl = entry.optString("url")
+        val entryUrl = if (rawUrl.startsWith("http")) rawUrl else "https://www.youtube.com/watch?v=$id"
+        entries.add(
+          mapOf(
+            "id" to id,
+            "title" to entry.optString("title"),
+            "url" to entryUrl,
+          ),
+        )
+      }
+    }
+
+    return mapOf(
+      "title" to json.optString("title"),
+      "entries" to entries,
+    )
+  }
+
   fun downloadVideo(
     url: String,
     formatId: String,

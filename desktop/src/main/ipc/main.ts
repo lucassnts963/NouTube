@@ -63,6 +63,37 @@ const interfaces = {
       })
     })
   },
+  listPlaylist: async (
+    url: string,
+  ): Promise<{ title: string; entries: { id: string; title: string; url: string }[] }> => {
+    const binary = await ensureYtDlp()
+    return new Promise((resolve, reject) => {
+      const proc = spawn(binary, ['--flat-playlist', '--dump-single-json', url])
+      let stdout = ''
+      let stderr = ''
+      proc.stdout.on('data', (d) => (stdout += d))
+      proc.stderr.on('data', (d) => (stderr += d))
+      proc.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(stderr.slice(0, 300) || `yt-dlp exited with code ${code}`))
+          return
+        }
+        try {
+          const info = JSON.parse(stdout)
+          const entries = (info.entries ?? [])
+            .filter((e: any) => e && e.id)
+            .map((e: any) => ({
+              id: e.id,
+              title: e.title || '',
+              url: typeof e.url === 'string' && e.url.startsWith('http') ? e.url : `https://www.youtube.com/watch?v=${e.id}`,
+            }))
+          resolve({ title: info.title || '', entries })
+        } catch {
+          reject(new Error('Failed to parse yt-dlp output'))
+        }
+      })
+    })
+  },
   getDownloadsPath: (): string => app.getPath('downloads'),
   consumePendingDeeplinks,
   selectFolder: async (): Promise<string | null> => {

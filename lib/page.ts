@@ -33,6 +33,21 @@ export function getThumbnail(url: string) {
   return id ? getVideoThumbnail(id) : undefined
 }
 
+/**
+ * Returns the `list` id of a real, enumerable playlist, or '' otherwise.
+ * Auto-generated radio/mix playlists (RD...) are endless and can't be listed,
+ * so they're treated as "not a playlist".
+ */
+export function getPlaylistId(url: string) {
+  try {
+    const list = new URL(url).searchParams.get('list') || ''
+    if (!list || list.startsWith('RD')) return ''
+    return list
+  } catch {
+    return ''
+  }
+}
+
 export function openSharedUrl(url: string) {
   if (url.startsWith('noutube:auth')) {
     onReceiveAuthUrl(url)

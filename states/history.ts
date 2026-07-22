@@ -23,6 +23,7 @@ interface Store {
   size: () => number
   removeHistory: (history: History) => void
   addHistory: (history: Partial<History>) => void
+  importHistory: (items: Partial<History>[]) => number
 }
 
 export const history$ = observable<Store>({
@@ -60,6 +61,50 @@ export const history$ = observable<Store>({
     if (history$.bookmarks.length > LIMIT) {
       history$.bookmarks.splice(LIMIT, history$.bookmarks.length)
     }
+  },
+  // Bulk import (e.g. from a YouTube Takeout watch-history export). Entries are
+  // merged with the existing history, deduped by videoId (keeping the most
+  // recent timestamp), sorted newest-first and capped at LIMIT.
+  importHistory: (items) => {
+    const byKey = new Map<string, History>()
+    for (const h of history$.bookmarks.get()) {
+      const key = h.videoId || h.url
+      if (key) byKey.set(key, h)
+    }
+
+    let added = 0
+    for (const item of items) {
+      const videoId = item.videoId || ''
+      const key = videoId || item.url || ''
+      if (!key) continue
+
+      const prev = byKey.get(key)
+      if (prev) {
+        const updatedAt = item.updatedAt || 0
+        if (updatedAt > prev.updatedAt) {
+          byKey.set(key, { ...prev, ...item, id: prev.id, updatedAt })
+        }
+        continue
+      }
+
+      byKey.set(key, {
+        id: genId(),
+        videoId,
+        url: item.url || '',
+        title: item.title || '',
+        thumbnail: item.thumbnail,
+        duration: 0,
+        current: 0,
+        ...item,
+        updatedAt: item.updatedAt || Date.now(),
+      } as History)
+      added += 1
+    }
+
+    const merged = [...byKey.values()].sort((a, b) => b.updatedAt - a.updatedAt)
+    if (merged.length > LIMIT) merged.length = LIMIT
+    history$.bookmarks.set(merged)
+    return added
   },
 })
 

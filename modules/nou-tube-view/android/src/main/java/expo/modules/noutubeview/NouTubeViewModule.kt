@@ -119,6 +119,10 @@ class NouTubeViewModule : Module() {
       return@Coroutine ytDlp().listFormats(url)
     }
 
+    AsyncFunction("listPlaylist") Coroutine { url: String ->
+      return@Coroutine ytDlp().listPlaylist(url)
+    }
+
     AsyncFunction("downloadVideo") Coroutine { url: String, formatId: String, outputDir: String ->
       try {
         val result = ytDlp().downloadVideo(url, formatId, outputDir) { progress, etaInSeconds, line ->
@@ -224,8 +228,14 @@ class NouTubeViewModule : Module() {
             val slugs = entry.name.split("/")
             val basename = slugs.lastOrNull()
             // Folder names inside Takeout are localized; importCsv (JS side)
-            // detects the CSV type by row shape, so extract every .csv.
-            if (basename != null && basename.endsWith(".csv", ignoreCase = true)) {
+            // detects the CSV type by row shape, so extract every .csv. Also
+            // extract the watch-history export (json or html) so the JS side
+            // can import the viewing history.
+            val isCsv = basename != null && basename.endsWith(".csv", ignoreCase = true)
+            val isHistory = basename != null &&
+              basename.contains("watch-history", ignoreCase = true) &&
+              (basename.endsWith(".json", ignoreCase = true) || basename.endsWith(".html", ignoreCase = true))
+            if (basename != null && (isCsv || isHistory)) {
               val output = uniqueFile(importDir, basename)
               FileOutputStream(output).use { out ->
                 zip.copyTo(out, DEFAULT_BUFFER_SIZE)

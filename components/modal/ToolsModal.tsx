@@ -11,9 +11,36 @@ import { downloads$ } from '@/states/downloads'
 import { t } from 'i18next'
 import type { FormatOption } from '@/lib/main-client'
 import { isAndroid, nIf } from '@/lib/utils'
+import { getPlaylistId, getVideoId } from '@/lib/page'
+import { showToast } from '@/lib/toast'
 import MaterialIcons from '@react-native-vector-icons/material-icons'
 
 type Phase = 'idle' | 'loading' | 'choosing' | 'error'
+
+// Whole-playlist downloads can't probe per-video formats, so offer a fixed set
+// of generic yt-dlp quality selectors applied to every video in the playlist.
+const getPlaylistFormats = (): FormatOption[] => [
+  {
+    formatId: 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+    label: '1080p',
+    description: t('modals.playlistVideoDesc', 'Video, up to 1080p'),
+  },
+  {
+    formatId: 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+    label: '720p',
+    description: t('modals.playlistVideo720Desc', 'Video, up to 720p'),
+  },
+  {
+    formatId: 'bestaudio-mp3',
+    label: t('modals.playlistAudioMp3', 'Audio (mp3)'),
+    description: t('modals.playlistAudioMp3Desc', 'MP3 audio with cover art'),
+  },
+  {
+    formatId: 'bestaudio/best',
+    label: t('modals.playlistAudio', 'Audio only'),
+    description: t('modals.playlistAudioDesc', 'Best audio stream'),
+  },
+]
 
 export const ToolsModal = () => {
   const toolsModalOpen = useValue(ui$.toolsModalOpen)
@@ -23,6 +50,7 @@ export const ToolsModal = () => {
   const [url, setUrl] = useState('')
   const [resolvedDownloadsPath, setResolvedDownloadsPath] = useState('')
   const [phase, setPhase] = useState<Phase>('idle')
+  const [playlistBusy, setPlaylistBusy] = useState(false)
   const [formats, setFormats] = useState<FormatOption[]>([])
   const [parsedTitle, setParsedTitle] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
@@ -65,7 +93,13 @@ export const ToolsModal = () => {
     if (!isOpen) return
     if (toolsModalUrl) {
       setUrl(toolsModalUrl)
-      loadFormats(toolsModalUrl)
+      // A bare playlist URL has no video to probe formats for; just show the
+      // playlist download options.
+      if (getVideoId(toolsModalUrl)) {
+        loadFormats(toolsModalUrl)
+      } else {
+        setPhase('idle')
+      }
     } else {
       setUrl('')
       setPhase('idle')
@@ -93,7 +127,57 @@ export const ToolsModal = () => {
     })
   }
 
+  const handleDownloadPlaylist = async (formatId: string) => {
+    if (playlistBusy) return
+    const targetUrl = toolsModalUrl || url
+    const dir = effectiveDownloadPath
+    setPlaylistBusy(true)
+    try {
+      const info = await mainClient.listPlaylist(targetUrl)
+      const entries = info.entries ?? []
+      if (!entries.length) {
+        showToast(t('modals.playlistEmpty', 'No videos found in this playlist'))
+        return
+      }
+
+      // Seed every entry so they show up in the download list immediately.
+      for (const entry of entries) {
+        downloads$[entry.url].set({
+          url: entry.url,
+          title: entry.title || entry.url,
+          phase: 'downloading',
+          progress: 0,
+          progressLine: '',
+          errorMsg: '',
+          savedPath: '',
+        })
+      }
+
+      setPhase('idle')
+      setUrl('')
+      ui$.toolsModalUrl.set('')
+      showToast(t('modals.playlistQueued', 'Downloading {{count}} videos').replace('{{count}}', String(entries.length)))
+
+      // Download sequentially to avoid spawning many yt-dlp processes at once.
+      for (const entry of entries) {
+        try {
+          await mainClient.downloadVideo(entry.url, formatId, dir)
+        } catch {
+          // per-item failure is surfaced via downloadProgress done+error
+        }
+      }
+    } catch (err: any) {
+      showToast(err?.message || t('modals.failedToLoadFormats'))
+    } finally {
+      setPlaylistBusy(false)
+    }
+  }
+
   if (!isOpen) return null
+
+  const currentUrl = toolsModalUrl || url
+  const playlistId = getPlaylistId(currentUrl)
+  const playlistFormats = getPlaylistFormats()
 
   const activeDownloadUrls = Object.keys(activeDownloads).reverse()
   const getProgressValue = (value: number) => Math.min(100, Math.max(0, Number.isFinite(value) ? value : 0))
@@ -144,7 +228,45 @@ export const ToolsModal = () => {
           </View>,
         )}
 
-        {phase === 'idle' && (
+        {!!playlistId && (
+          <View className="gap-3">
+            <View className="flex-row items-center gap-2">
+              <MaterialIcons name="playlist-play" size={20} color={isDark ? '#a5b4fc' : '#4f46e5'} />
+              <NouText className="text-base font-semibold">
+                {t('modals.downloadPlaylist', 'Download whole playlist')}
+              </NouText>
+            </View>
+            {playlistFormats.map((opt) => (
+              <View
+                key={opt.formatId}
+                className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 p-4 gap-3"
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="flex-1 gap-1">
+                    <NouText className="font-semibold">{opt.label}</NouText>
+                    <NouText className="text-sm text-zinc-500 dark:text-zinc-400">{opt.description}</NouText>
+                  </View>
+                  <Pressable
+                    disabled={playlistBusy}
+                    onPress={() => handleDownloadPlaylist(opt.formatId)}
+                    className={
+                      playlistBusy
+                        ? 'h-11 w-11 items-center justify-center rounded-full bg-zinc-300 dark:bg-zinc-700'
+                        : 'h-11 w-11 items-center justify-center rounded-full bg-indigo-600 dark:bg-indigo-500 active:bg-indigo-700 dark:active:bg-indigo-400'
+                    }
+                  >
+                    <MaterialIcons name="download" size={20} color="#fff" />
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+            {nIf(playlistBusy, <ActivityIndicator color={isDark ? 'white' : '#3f3f46'} />)}
+          </View>
+        )}
+
+        {/* Hide the single-video "Next" only for a bare playlist URL, where the
+            playlist section above already provides the download actions. */}
+        {phase === 'idle' && !(playlistId && !getVideoId(currentUrl)) && (
           <View className="flex-row justify-end">
             <NouButton disabled={!url.trim()} onPress={() => loadFormats(url.trim())}>
               {t('buttons.next')}

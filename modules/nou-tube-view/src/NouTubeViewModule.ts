@@ -14,6 +14,7 @@ declare class NouTubeViewModule extends NativeModule {
   clearSleepTimer(): Promise<void>
   getSleepTimerRemainingMs(): Promise<number | null>
   listFormats(url: string): Promise<{ title: string; formats: Array<{ formatId: string; label: string; description: string }> }>
+  listPlaylist(url: string): Promise<{ title: string; entries: Array<{ id: string; title: string; url: string }> }>
   downloadVideo(url: string, formatId: string, outputDir: string): Promise<void>
   getDownloadsPath(): Promise<string>
   updateYtDlp(): Promise<void>

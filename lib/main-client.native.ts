@@ -2,11 +2,13 @@ import NouTubeViewModule from '@/modules/nou-tube-view'
 import type { UpdateCheckResult } from '../desktop/src/main/lib/auto-update'
 
 export type FormatOption = { formatId: string; label: string; description: string }
+export type PlaylistEntry = { id: string; title: string; url: string }
 
 export interface MainClient {
   clearData(): Promise<void> | void
   toggleInterception(enabled: boolean): Promise<void> | void
   listFormats(url: string): Promise<{ title: string; formats: FormatOption[] }>
+  listPlaylist(url: string): Promise<{ title: string; entries: PlaylistEntry[] }>
   downloadVideo(url: string, formatId: string, outputDir: string): Promise<void>
   getDownloadsPath(): Promise<string>
   selectFolder(): Promise<string | null>
@@ -22,6 +24,7 @@ export interface MainClient {
 
 type NouTubeDownloadClient = {
   listFormats?: MainClient['listFormats']
+  listPlaylist?: MainClient['listPlaylist']
   downloadVideo?: MainClient['downloadVideo']
   getDownloadsPath?: MainClient['getDownloadsPath']
   updateYtDlp?: MainClient['updateYtDlp']
@@ -37,6 +40,12 @@ export const mainClient: MainClient = {
       throw new Error('download API unavailable')
     }
     return nativeModule.listFormats(url)
+  },
+  async listPlaylist(url) {
+    if (typeof nativeModule.listPlaylist !== 'function') {
+      throw new Error('playlist API unavailable')
+    }
+    return nativeModule.listPlaylist(url)
   },
   async downloadVideo(url, formatId, outputDir) {
     if (typeof nativeModule.downloadVideo !== 'function') {
