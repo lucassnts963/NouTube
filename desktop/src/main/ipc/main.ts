@@ -95,6 +95,11 @@ const interfaces = {
     })
   },
   getDownloadsPath: (): string => app.getPath('downloads'),
+  // Picture-in-Picture is an Android-only feature; no-op on desktop so the
+  // shared client type stays consistent across platforms.
+  enterPictureInPicture: async (_widthRatio: number, _heightRatio: number): Promise<boolean> => false,
+  setAutoPictureInPicture: async (_enabled: boolean, _widthRatio: number, _heightRatio: number): Promise<boolean> =>
+    false,
   consumePendingDeeplinks,
   selectFolder: async (): Promise<string | null> => {
     const { mainWindow } = await import('main/lib/main-window.js')

@@ -8,6 +8,7 @@ import { clsx, isAndroid, isIos, isWeb, nIf } from '@/lib/utils'
 import { ui$, updateUrl } from '@/states/ui'
 import { bookmarks$ } from '@/states/bookmarks'
 import { getPageType, getVideoId } from '@/lib/page'
+import { mainClient } from '@/lib/main-client'
 import { toggleStar } from '@/lib/bookmarks'
 import { queue$ } from '@/states/queue'
 import { share } from '@/lib/share'
@@ -476,13 +477,19 @@ export const NouHeader: React.FC<{ getNoutube: () => any }> = ({ getNoutube }) =
               systemImage: 'arrow.clockwise',
               handler: reloadPage,
             },
-            ...(isWeb && (pageType?.type === 'watch' || pageType?.type === 'shorts')
+            ...((isWeb || isAndroid) && (pageType?.type === 'watch' || pageType?.type === 'shorts')
               ? [
                   {
                     label: t('menus.pip'),
                     icon: <MaterialIcons name="picture-in-picture-alt" size={18} color={headerControlColor} />,
                     systemImage: 'pip',
                     handler: () => {
+                      if (isAndroid) {
+                        // System PiP: shrink the whole activity (webview video) into
+                        // the floating window.
+                        void mainClient.enterPictureInPicture(16, 9)
+                        return
+                      }
                       getNoutube()?.executeJavaScript?.(
                         `(() => {
                           const video = document.querySelector('video');

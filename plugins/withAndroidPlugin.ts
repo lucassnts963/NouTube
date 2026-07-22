@@ -6,6 +6,16 @@ const withAndroidSigningConfig: ConfigPlugin = (config) => {
     const app = config.modResults.manifest.application?.[0]
     if (app) {
       app.$['android:extractNativeLibs'] = 'true'
+
+      // Allow the main activity (which hosts the YouTube webview) to enter
+      // system Picture-in-Picture. expo-video's plugin sets this too; keeping it
+      // here is idempotent and guarantees it for the webview PiP feature.
+      const mainActivity = app.activity?.find((a: any) =>
+        (a?.$?.['android:name'] as string | undefined)?.endsWith('MainActivity'),
+      )
+      if (mainActivity) {
+        mainActivity.$['android:supportsPictureInPicture'] = 'true'
+      }
     }
     return config
   })

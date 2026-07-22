@@ -17,6 +17,8 @@ declare class NouTubeViewModule extends NativeModule {
   listPlaylist(url: string): Promise<{ title: string; entries: Array<{ id: string; title: string; url: string }> }>
   downloadVideo(url: string, formatId: string, outputDir: string): Promise<void>
   getDownloadsPath(): Promise<string>
+  enterPictureInPicture(widthRatio: number, heightRatio: number): Promise<boolean>
+  setAutoPictureInPicture(enabled: boolean, widthRatio: number, heightRatio: number): Promise<boolean>
   updateYtDlp(): Promise<void>
   setLocaleStrings(strings: Record<string, string>): void
   translateText(text: string, targetLanguage: string): Promise<{ text: string; sourceLanguage?: string }>

@@ -9,6 +9,8 @@ export interface MainClient {
   toggleInterception(enabled: boolean): Promise<void> | void
   listFormats(url: string): Promise<{ title: string; formats: FormatOption[] }>
   listPlaylist(url: string): Promise<{ title: string; entries: PlaylistEntry[] }>
+  enterPictureInPicture(widthRatio: number, heightRatio: number): Promise<boolean>
+  setAutoPictureInPicture(enabled: boolean, widthRatio: number, heightRatio: number): Promise<boolean>
   downloadVideo(url: string, formatId: string, outputDir: string): Promise<void>
   getDownloadsPath(): Promise<string>
   selectFolder(): Promise<string | null>
@@ -27,6 +29,8 @@ type NouTubeDownloadClient = {
   listPlaylist?: MainClient['listPlaylist']
   downloadVideo?: MainClient['downloadVideo']
   getDownloadsPath?: MainClient['getDownloadsPath']
+  enterPictureInPicture?: MainClient['enterPictureInPicture']
+  setAutoPictureInPicture?: MainClient['setAutoPictureInPicture']
   updateYtDlp?: MainClient['updateYtDlp']
 }
 
@@ -46,6 +50,22 @@ export const mainClient: MainClient = {
       throw new Error('playlist API unavailable')
     }
     return nativeModule.listPlaylist(url)
+  },
+  async enterPictureInPicture(widthRatio, heightRatio) {
+    if (typeof nativeModule.enterPictureInPicture !== 'function') return false
+    try {
+      return await nativeModule.enterPictureInPicture(widthRatio, heightRatio)
+    } catch {
+      return false
+    }
+  },
+  async setAutoPictureInPicture(enabled, widthRatio, heightRatio) {
+    if (typeof nativeModule.setAutoPictureInPicture !== 'function') return false
+    try {
+      return await nativeModule.setAutoPictureInPicture(enabled, widthRatio, heightRatio)
+    } catch {
+      return false
+    }
   },
   async downloadVideo(url, formatId, outputDir) {
     if (typeof nativeModule.downloadVideo !== 'function') {

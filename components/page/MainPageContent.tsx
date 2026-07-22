@@ -9,7 +9,7 @@ import { createLogger } from '@/lib/log'
 import { EmbedVideoModal } from '@/components/modal/EmbedVideoModal'
 import NouTubeViewModule, { NouTubeView } from '@/modules/nou-tube-view'
 import { StyleSheet, View, useWindowDimensions } from 'react-native'
-import { getThumbnail, getVideoId, setPageUrl } from '@/lib/page'
+import { getPageType, getThumbnail, getVideoId, setPageUrl } from '@/lib/page'
 import { showToast } from '@/lib/toast'
 import { clsx, isAndroid, isWeb, nIf } from '@/lib/utils'
 import type { WebviewTag } from 'electron'
@@ -410,6 +410,15 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
       }
     })
   }, [])
+
+  // Enable auto Picture-in-Picture (API 31+) while on a video page, so the
+  // webview video pops into a floating window when the user leaves the app.
+  useEffect(() => {
+    if (!isAndroid) return
+    const pageType = getPageType(activePageUrl)
+    const isVideoPage = pageType?.type === 'watch' || pageType?.type === 'shorts'
+    void mainClient.setAutoPictureInPicture(isVideoPage, 16, 9)
+  }, [activePageUrl])
 
   const toggleShorts = useCallback(
     (hide?: boolean) => {

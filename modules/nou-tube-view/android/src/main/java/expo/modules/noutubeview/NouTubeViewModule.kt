@@ -1,6 +1,10 @@
 package expo.modules.noutubeview
 
+import android.app.PictureInPictureParams
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.util.Rational
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.webkit.ProxyConfig
 import androidx.webkit.ProxyController
@@ -162,6 +166,51 @@ class NouTubeViewModule : Module() {
       android.os.Environment.DIRECTORY_DOWNLOADS
     }
 
+    // Puts the whole activity (including the YouTube webview) into the system
+    // Picture-in-Picture window so the video keeps playing while the user leaves
+    // the app. Requires API 26+.
+    AsyncFunction("enterPictureInPicture") { widthRatio: Int, heightRatio: Int ->
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return@AsyncFunction false
+      val activity = appContext.activityProvider?.currentActivity ?: return@AsyncFunction false
+      if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        return@AsyncFunction false
+      }
+      activity.runOnUiThread {
+        try {
+          val params = PictureInPictureParams.Builder()
+            .setAspectRatio(sanitizeAspectRatio(widthRatio, heightRatio))
+            .build()
+          activity.enterPictureInPictureMode(params)
+        } catch (e: Exception) {
+          nouController.log("enterPictureInPicture failed: ${e.message}")
+        }
+      }
+      true
+    }
+
+    // On API 31+ this makes the activity automatically enter PiP when the user
+    // navigates away (e.g. presses Home) while a video is playing. Call with
+    // enabled=false to disable it when leaving a watch page.
+    AsyncFunction("setAutoPictureInPicture") { enabled: Boolean, widthRatio: Int, heightRatio: Int ->
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return@AsyncFunction false
+      val activity = appContext.activityProvider?.currentActivity ?: return@AsyncFunction false
+      if (!activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+        return@AsyncFunction false
+      }
+      activity.runOnUiThread {
+        try {
+          val params = PictureInPictureParams.Builder()
+            .setAspectRatio(sanitizeAspectRatio(widthRatio, heightRatio))
+            .setAutoEnterEnabled(enabled)
+            .build()
+          activity.setPictureInPictureParams(params)
+        } catch (e: Exception) {
+          nouController.log("setAutoPictureInPicture failed: ${e.message}")
+        }
+      }
+      true
+    }
+
     AsyncFunction("updateYtDlp") {
       ytDlp().update()
     }
@@ -212,6 +261,19 @@ class NouTubeViewModule : Module() {
       AsyncFunction("loadUrl") { view: NouTubeView, url: String ->
         view.webView.loadUrl(url)
       }
+    }
+  }
+
+  // Android rejects PiP aspect ratios outside the [1:2.39, 2.39:1] range, so
+  // clamp anything extreme (and guard against zero) to a safe 16:9 default.
+  private fun sanitizeAspectRatio(width: Int, height: Int): Rational {
+    val w = width.takeIf { it > 0 } ?: 16
+    val h = height.takeIf { it > 0 } ?: 9
+    val ratio = w.toDouble() / h.toDouble()
+    return when {
+      ratio > 2.39 -> Rational(239, 100)
+      ratio < 1.0 / 2.39 -> Rational(100, 239)
+      else -> Rational(w, h)
     }
   }
 

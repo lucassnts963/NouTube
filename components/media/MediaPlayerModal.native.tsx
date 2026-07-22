@@ -1,4 +1,5 @@
 import { Modal, Pressable, View } from 'react-native'
+import { useRef } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEvent } from 'expo'
 import { VideoView, useVideoPlayer } from 'expo-video'
@@ -14,6 +15,7 @@ const blurhash =
 
 const PlayerView: React.FC<{ media: LocalMedia }> = ({ media }) => {
   const isAudio = media.kind === 'audio'
+  const videoRef = useRef<VideoView>(null)
 
   const player = useVideoPlayer(
     { uri: media.uri, metadata: { title: media.title, artist: 'NouTube' } },
@@ -42,6 +44,14 @@ const PlayerView: React.FC<{ media: LocalMedia }> = ({ media }) => {
             <NouText className="flex-1 text-white font-semibold" numberOfLines={1}>
               {media.title}
             </NouText>
+            {!isAudio && (
+              <Pressable
+                onPress={() => videoRef.current?.startPictureInPicture()}
+                className="h-10 w-10 items-center justify-center rounded-full active:bg-white/10"
+              >
+                <MaterialIcons name="picture-in-picture-alt" size={22} color="#fff" />
+              </Pressable>
+            )}
           </View>
 
           {isAudio ? (
@@ -79,10 +89,12 @@ const PlayerView: React.FC<{ media: LocalMedia }> = ({ media }) => {
             </View>
           ) : (
             <VideoView
+              ref={videoRef}
               player={player}
               style={{ flex: 1 }}
               contentFit="contain"
               allowsPictureInPicture
+              startsPictureInPictureAutomatically
               nativeControls
             />
           )}
