@@ -30,7 +30,7 @@ import { getReleaseFeedQuery } from '@/lib/query/changelog'
 import { mainClient } from '@/lib/main-client'
 import { showToast } from '@/lib/toast'
 
-const repo = 'https://github.com/nonbili/NouTube'
+const repo = 'https://github.com/lucassnts963/NouTube'
 const donateLinks = [
   { label: 'GitHub Sponsors', detail: 'github.com/sponsors/rnons', url: 'https://github.com/sponsors/rnons' },
   { label: 'Liberapay', detail: 'liberapay.com/rnons', url: 'https://liberapay.com/rnons' },
@@ -447,7 +447,7 @@ export const SettingsModal = () => {
 
         <SettingsSection label={t('about.code')}>
           <View className={surfaceCls}>
-            <SettingsExternalRow title="GitHub" detail="github.com/nonbili/NouTube" href={repo} icon="code" isLast />
+            <SettingsExternalRow title="GitHub" detail="github.com/lucassnts963/NouTube" href={repo} icon="code" isLast />
           </View>
         </SettingsSection>
 

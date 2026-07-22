@@ -18,7 +18,7 @@ const PlayerView: React.FC<{ media: LocalMedia }> = ({ media }) => {
   const videoRef = useRef<VideoView>(null)
 
   const player = useVideoPlayer(
-    { uri: media.uri, metadata: { title: media.title, artist: 'NouTube' } },
+    { uri: media.uri, metadata: { title: media.title, artist: 'GuriTube' } },
     (p) => {
       // Keep playing when the app is backgrounded and surface the media
       // notification / lock-screen controls.

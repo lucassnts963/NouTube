@@ -1,6 +1,6 @@
 {
   "name": "noutube-desktop",
-  "productName": "NouTube",
+  "productName": "GuriTube",
   "version": "0.2.12",
   "description": "YouTube and YouTube Music in a single app",
   "main": "./out/main/index.js",

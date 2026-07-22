@@ -17,10 +17,13 @@ const intentFilters = [
 
 module.exports = ({ config }: { config: ExpoConfig }) => {
   return {
-    name: 'NouTube',
-    slug: 'noutube',
+    name: 'GuriTube',
+    slug: 'guritube',
     version,
     icon: './assets/images/icon.png',
+    // Keep the custom URL scheme as 'noutube': it's not user-visible and is
+    // wired to the auth deeplink (noutube:auth) + the Supabase OAuth redirect,
+    // so renaming it would break login/sync until the server redirect changes.
     scheme: 'noutube',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
