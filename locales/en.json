@@ -397,6 +397,23 @@
     "label": "Sync",
     "hint": "Sync bookmarks across your phones and computers as a premium user.",
     "currentPlan": "Current plan",
-    "managePlan": "Manage plan"
+    "managePlan": "Manage plan",
+    "server": {
+      "label": "Sync server",
+      "hint": "Point sync at your own Supabase. Applies after restarting the app.",
+      "anonKey": "anon / publishable key",
+      "useDefault": "Use default",
+      "saved": "Saved — restart the app to apply",
+      "reset": "Reset — restart the app to apply",
+      "incomplete": "Enter the server URL and anon key"
+    },
+    "login": {
+      "label": "Sign in",
+      "hint": "Sign in with a magic link sent to your email.",
+      "email": "you@example.com",
+      "send": "Send magic link",
+      "sent": "Magic link sent — check your email",
+      "invalidEmail": "Enter a valid email"
+    }
   }
 }

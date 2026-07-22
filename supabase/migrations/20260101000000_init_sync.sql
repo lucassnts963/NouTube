@@ -64,6 +64,46 @@ create table if not exists public.nou_user_styles (
 );
 
 -- ---------------------------------------------------------------------------
+-- Plans / entitlement
+--
+-- Sync is a gated capability (it can become a paid product later). Each account
+-- has a plan; only 'free' is blocked client-side. Users can READ their own plan
+-- but never change it — the admin (you) grants premium. A signup trigger seeds
+-- every new account as 'free'.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.nou_profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  plan text not null default 'free',
+  updated_at timestamptz not null default now()
+);
+
+alter table public.nou_profiles enable row level security;
+
+drop policy if exists nou_profiles_read_own on public.nou_profiles;
+create policy nou_profiles_read_own on public.nou_profiles
+  for select to authenticated using (auth.uid() = user_id);
+-- No insert/update/delete policy for authenticated: plan changes are admin-only
+-- (service role, or SQL run as the owner — see the grant snippet below).
+
+create or replace function public.nou_handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.nou_profiles (user_id, plan) values (new.id, 'free')
+    on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_nou on auth.users;
+create trigger on_auth_user_created_nou after insert on auth.users
+  for each row execute function public.nou_handle_new_user();
+
+-- Grant yourself premium (run once as admin, after your first sign-in):
+--   update public.nou_profiles set plan = 'premium'
+--     where user_id = (select id from auth.users where email = 'you@example.com');
+
+-- ---------------------------------------------------------------------------
 -- Row Level Security: an account can only read/write its own rows.
 -- ---------------------------------------------------------------------------
 

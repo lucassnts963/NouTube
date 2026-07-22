@@ -38,6 +38,21 @@ sees its own rows.
 > The custom URL scheme stays `noutube` (it's wired to the auth deep link);
 > that's independent of the GuriTube branding.
 
+## 3.5. Grant yourself premium
+
+Sync is a gated capability (it can become a paid product later), so it only runs
+for accounts whose plan isn't `free`. The schema seeds every new account as
+`free`; after your **first sign-in**, promote your account once as admin (SQL
+Editor / psql):
+
+```sql
+update public.nou_profiles set plan = 'premium'
+  where user_id = (select id from auth.users where email = 'you@example.com');
+```
+
+Users can read their own plan but can't change it, so only accounts you grant
+premium will sync.
+
 ## 4. Point the app at your server
 
 Two knobs — the Supabase URL and the anon (publishable) key from

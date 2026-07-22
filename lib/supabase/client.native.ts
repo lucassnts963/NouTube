@@ -1,17 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createClient } from '@supabase/supabase-js'
+import { getSyncServer } from '../sync-config'
 
-export const supabase = createClient(
-  process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://pgukcvgypvjwtibzlvhr.supabase.co',
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndWtjdmd5cHZqd3RpYnpsdmhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI0NTIzODQsImV4cCI6MjAyODAyODM4NH0.zoxse4Kay_svHlQOiAINZm1lPIFPJMZAY8RKZUDSQrs',
-  {
-    auth: {
-      // https://github.com/supabase/supabase-js/issues/870#issuecomment-1746699664
-      storage: AsyncStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
+// Endpoint is read once at boot from the in-app sync config (Settings → Sync),
+// falling back to the build-time env / default. Changing it applies on restart.
+const { url, anonKey } = getSyncServer()
+
+export const supabase = createClient(url, anonKey, {
+  auth: {
+    // https://github.com/supabase/supabase-js/issues/870#issuecomment-1746699664
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
   },
-)
+})

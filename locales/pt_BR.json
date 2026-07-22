@@ -220,7 +220,24 @@
     "label": "Sincronizar",
     "hint": "Sincronizar favoritos entre seus telefones e computadores como usuário premium.",
     "currentPlan": "Plano atual",
-    "managePlan": "Gerenciar plano"
+    "managePlan": "Gerenciar plano",
+    "server": {
+      "label": "Servidor de sync",
+      "hint": "Aponte o sync pro seu próprio Supabase. Aplica ao reiniciar o app.",
+      "anonKey": "chave anon / publishable",
+      "useDefault": "Usar padrão",
+      "saved": "Salvo — reinicie o app pra aplicar",
+      "reset": "Restaurado — reinicie o app pra aplicar",
+      "incomplete": "Informe a URL do servidor e a anon key"
+    },
+    "login": {
+      "label": "Entrar",
+      "hint": "Entre com um link mágico enviado pro seu e-mail.",
+      "email": "voce@exemplo.com",
+      "send": "Enviar link mágico",
+      "sent": "Link enviado — confira seu e-mail",
+      "invalidEmail": "Informe um e-mail válido"
+    }
   },
   "changelog": {
     "label": "Histórico de atualização",

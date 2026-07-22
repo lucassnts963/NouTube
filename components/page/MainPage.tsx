@@ -1,6 +1,7 @@
 import { auth$ } from '@/states/auth'
 import { MainPageContent } from './MainPageContent'
 import { supabase } from '@/lib/supabase/client'
+import { refreshPlan } from '@/lib/supabase/plan'
 import { useEffect, useState } from 'react'
 import { useValue } from '@legendapp/state/react'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -75,6 +76,11 @@ export const MainPage: React.FC<{ contentJs: string }> = ({ contentJs }) => {
         user: session?.user.user_metadata,
         accessToken: session?.access_token,
       })
+      if (session?.user.id) {
+        void refreshPlan()
+      } else {
+        auth$.plan.set(undefined)
+      }
     })
 
     feederLoop()
