@@ -21,6 +21,8 @@ import { PlaybackSpeedModal } from '../modal/PlaybackSpeedModal'
 import { PlaybackQualityModal } from '../modal/PlaybackQualityModal'
 import { ToolsModal } from '../modal/ToolsModal'
 import { ShareModal } from '../modal/ShareModal'
+import { LocalLibraryModal } from '../modal/LocalLibraryModal'
+import { MediaPlayerModal } from '../media/MediaPlayerModal'
 import { useLocales } from 'expo-localization'
 import { changeLanguage, t as i18nextT } from 'i18next'
 import NouTubeViewModule from '@/modules/nou-tube-view'
@@ -95,6 +97,8 @@ export const MainPage: React.FC<{ contentJs: string }> = ({ contentJs }) => {
       <PlaybackQualityModal />
       <ToolsModal />
       <ShareModal />
+      <LocalLibraryModal />
+      <MediaPlayerModal />
       {nIf(!isWeb, <TranslationCard />)}
     </QueryClientProvider>
   )

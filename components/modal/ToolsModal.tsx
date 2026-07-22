@@ -7,7 +7,7 @@ import { BaseModal } from './BaseModal'
 import { NouText } from '../NouText'
 import { NouButton } from '../button/NouButton'
 import { mainClient } from '@/lib/main-client'
-import { downloads$ } from '@/states/downloads'
+import { downloads$, inferMediaKind } from '@/states/downloads'
 import { t } from 'i18next'
 import type { FormatOption } from '@/lib/main-client'
 import { isAndroid, nIf } from '@/lib/utils'
@@ -117,6 +117,7 @@ export const ToolsModal = () => {
       progressLine: '',
       errorMsg: '',
       savedPath: '',
+      kind: inferMediaKind(formatId),
     })
     setPhase('idle')
     setUrl('')
@@ -150,6 +151,7 @@ export const ToolsModal = () => {
           progressLine: '',
           errorMsg: '',
           savedPath: '',
+          kind: inferMediaKind(formatId),
         })
       }
 

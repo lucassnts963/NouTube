@@ -23,6 +23,7 @@ interface Store {
   historyModalOpen: boolean
   libraryModalOpen: boolean
   libraryModalTab: string
+  localLibraryModalOpen: boolean
   queueModalOpen: boolean
   settingsModalOpen: boolean
   sleepTimerModalOpen: boolean
@@ -64,6 +65,7 @@ export const ui$ = observable<Store>({
   historyModalOpen: false,
   libraryModalOpen: false,
   libraryModalTab: '',
+  localLibraryModalOpen: false,
   queueModalOpen: false,
   settingsModalOpen: false,
   sleepTimerModalOpen: false,

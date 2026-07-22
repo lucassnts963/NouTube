@@ -34,6 +34,16 @@
     "songs": "Músicas",
     "artists": "Artistas"
   },
+  "localLibrary": {
+    "title": "Downloads",
+    "all": "Todos",
+    "music": "Músicas",
+    "videos": "Vídeos",
+    "audio": "Áudio",
+    "video": "Vídeo",
+    "empty": "Vídeos e músicas baixados vão aparecer aqui.",
+    "openExternally": "Abrir no player do sistema"
+  },
   "menus": {
     "edit": "Editar",
     "remove": "Remover",

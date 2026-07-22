@@ -81,6 +81,13 @@ module.exports = ({ config }: { config: ExpoConfig }) => {
         },
       ],
       'expo-web-browser',
+      [
+        'expo-video',
+        {
+          supportsBackgroundPlayback: true,
+          supportsPictureInPicture: true,
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

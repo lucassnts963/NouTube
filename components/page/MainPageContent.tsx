@@ -9,7 +9,7 @@ import { createLogger } from '@/lib/log'
 import { EmbedVideoModal } from '@/components/modal/EmbedVideoModal'
 import NouTubeViewModule, { NouTubeView } from '@/modules/nou-tube-view'
 import { StyleSheet, View, useWindowDimensions } from 'react-native'
-import { getVideoId, setPageUrl } from '@/lib/page'
+import { getThumbnail, getVideoId, setPageUrl } from '@/lib/page'
 import { showToast } from '@/lib/toast'
 import { clsx, isAndroid, isWeb, nIf } from '@/lib/utils'
 import type { WebviewTag } from 'electron'
@@ -22,6 +22,7 @@ import { ObservableHint } from '@legendapp/state'
 import { mainClient } from '@/lib/main-client'
 import { onDownloadProgress } from '@/lib/download-progress'
 import { downloads$ } from '@/states/downloads'
+import { localLibrary$ } from '@/states/local-library'
 import { resolveUserAgent } from '@/lib/useragent'
 import { handleShortcuts } from '@/desktop/src/renderer/lib/shortcuts'
 import { history$ } from '@/states/history'
@@ -388,11 +389,23 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
             errorMsg: payload.line || 'Download failed',
           })
         } else {
+          const savedPath = payload.filePath || ''
           downloads$[payload.url].assign({
             progress: 100,
-            savedPath: payload.filePath || '',
+            savedPath,
             phase: 'done',
           })
+          // Register the finished file in the local library so it can be played
+          // in the built-in music/video player.
+          if (savedPath) {
+            localLibrary$.addMedia({
+              uri: savedPath,
+              title: current.title || payload.url,
+              kind: current.kind || 'video',
+              thumbnail: getThumbnail(payload.url),
+              sourceUrl: payload.url,
+            })
+          }
         }
       }
     })

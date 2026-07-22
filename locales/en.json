@@ -44,6 +44,16 @@
     "songs": "Songs",
     "artists": "Artists"
   },
+  "localLibrary": {
+    "title": "Downloads",
+    "all": "All",
+    "music": "Music",
+    "videos": "Videos",
+    "audio": "Audio",
+    "video": "Video",
+    "empty": "Downloaded videos and music will show up here.",
+    "openExternally": "Open with system player"
+  },
   "menus": {
     "openInNewTab": "Open in New Tab",
     "edit": "Edit",

@@ -465,6 +465,12 @@ export const NouHeader: React.FC<{ getNoutube: () => any }> = ({ getNoutube }) =
               handler: () => ui$.historyModalOpen.set(true),
             },
             {
+              label: t('localLibrary.title', 'Downloads'),
+              icon: <MaterialIcons name="download-for-offline" size={18} color={headerControlColor} />,
+              systemImage: 'arrow.down.circle',
+              handler: () => ui$.localLibraryModalOpen.set(true),
+            },
+            {
               label: t('menus.reload'),
               icon: <MaterialIcons name="refresh" size={18} color={headerControlColor} />,
               systemImage: 'arrow.clockwise',
