@@ -2,6 +2,7 @@ import { intercept } from './intercept'
 import { installH264ify } from './h264ify'
 import { installClickbaitThumbnails } from './clickbait'
 import { injectCSS } from './css'
+import { initGuri } from './guri'
 import { initNouTube } from './noutube'
 import { initUserScripts } from './user-scripts'
 import { handleMutations, handleVideoPlayer } from './player'
@@ -41,6 +42,7 @@ try {
 
   if (document.documentElement) {
     injectCSS()
+    initGuri()
     initUserScripts()
     emit('onload')
     initObserver()

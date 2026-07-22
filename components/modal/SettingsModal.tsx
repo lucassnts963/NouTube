@@ -19,6 +19,8 @@ import {
 import { SettingsChangelogContent } from './SettingsModalTabChangelog'
 import { SettingsUserStylesContent } from './SettingsUserStylesContent'
 import { SettingsBlocklistContent } from './SettingsBlocklistContent'
+import { PinGate } from './PinGate'
+import { guri$ } from '@/states/guri'
 import { t } from 'i18next'
 import MaterialIcons, { type MaterialIconsIconName } from '@react-native-vector-icons/material-icons'
 import { auth$ } from '@/states/auth'
@@ -134,6 +136,8 @@ function formatPlanLabel(plan?: string) {
 
 export const SettingsModal = () => {
   const settingsModalOpen = useValue(ui$.settingsModalOpen)
+  const guriEnabled = useValue(guri$.enabled)
+  const guriUnlocked = useValue(ui$.guriUnlocked)
   const urlModalOpen = useValue(ui$.urlModalOpen)
   const cookieModalOpen = useValue(ui$.cookieModalOpen)
   const userAgentModalOpen = useValue(ui$.userAgentModalOpen)
@@ -505,15 +509,28 @@ export const SettingsModal = () => {
     )
   }
 
+  // Parental lock: block the whole settings tree behind the PIN until unlocked.
+  const body =
+    guriEnabled && !guriUnlocked ? (
+      <PinGate
+        title={t('guri.settingsLocked', 'Settings locked')}
+        verify={(p) => guri$.verifyPin(p)}
+        onUnlock={() => ui$.guriUnlocked.set(true)}
+        onCancel={closeSettingsTree}
+      />
+    ) : (
+      content
+    )
+
   return isNarrowNative ? (
     <View className="absolute inset-0 z-10 bg-zinc-100 dark:bg-zinc-950">
       <SafeAreaView className="flex-1" edges={['top']}>
-        {content}
+        {body}
       </SafeAreaView>
     </View>
   ) : (
     <BaseModal onClose={closeSettingsTree} className="bg-transparent">
-      {content}
+      {body}
     </BaseModal>
   )
 }

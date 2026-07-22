@@ -24,6 +24,9 @@ interface Store {
   libraryModalOpen: boolean
   libraryModalTab: string
   localLibraryModalOpen: boolean
+  guriModalOpen: boolean
+  /** Session-only: parental settings unlocked with the PIN until app restart. */
+  guriUnlocked: boolean
   queueModalOpen: boolean
   settingsModalOpen: boolean
   sleepTimerModalOpen: boolean
@@ -66,6 +69,8 @@ export const ui$ = observable<Store>({
   libraryModalOpen: false,
   libraryModalTab: '',
   localLibraryModalOpen: false,
+  guriModalOpen: false,
+  guriUnlocked: false,
   queueModalOpen: false,
   settingsModalOpen: false,
   sleepTimerModalOpen: false,

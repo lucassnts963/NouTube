@@ -472,6 +472,12 @@ export const NouHeader: React.FC<{ getNoutube: () => any }> = ({ getNoutube }) =
               handler: () => ui$.localLibraryModalOpen.set(true),
             },
             {
+              label: t('guri.title', 'Modo guri'),
+              icon: <MaterialIcons name="child-care" size={18} color={headerControlColor} />,
+              systemImage: 'figure.child',
+              handler: () => ui$.guriModalOpen.set(true),
+            },
+            {
               label: t('menus.reload'),
               icon: <MaterialIcons name="refresh" size={18} color={headerControlColor} />,
               systemImage: 'arrow.clockwise',

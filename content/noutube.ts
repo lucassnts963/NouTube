@@ -2,6 +2,7 @@ import {
   hideShorts,
   showShorts,
 } from './css'
+import { getGuri, setGuri } from './guri'
 import { playDefaultAudio, restoreLastPlaying } from './player'
 import { emit } from './utils'
 import { createDefaultUserStylesSnapshot, type UserStylesSnapshot } from '../lib/user-styles'
@@ -109,5 +110,7 @@ export function initNouTube() {
     playDefaultAudio,
     restoreLastPlaying,
     bridgeShortcuts,
+    getGuri,
+    setGuri,
   }
 }

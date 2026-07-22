@@ -27,6 +27,7 @@ import { resolveUserAgent } from '@/lib/useragent'
 import { handleShortcuts } from '@/desktop/src/renderer/lib/shortcuts'
 import { history$ } from '@/states/history'
 import { getUserStylesSnapshot, userStyles$ } from '@/states/user-styles'
+import { guri$, getGuriContentSnapshot } from '@/states/guri'
 import { blocklist$, getBlocklistSnapshot } from '@/states/blocklist'
 import { SettingsModal } from '../modal/SettingsModal'
 
@@ -127,6 +128,12 @@ const DesktopTabView: React.FC<{
     executeQuietly(webviewRef.current, `window.NouTube?.setUserStyles?.(${value})`)
   }, [])
 
+  const syncGuriToWebview = useCallback(() => {
+    if (!readyRef.current) return
+    const value = JSON.stringify(getGuriContentSnapshot())
+    executeQuietly(webviewRef.current, `window.NouTube?.setGuri?.(${value})`)
+  }, [])
+
   const syncBlocklistToWebview = useCallback(() => {
     if (!readyRef.current) return
     const snapshot = getBlocklistSnapshot()
@@ -199,6 +206,7 @@ const DesktopTabView: React.FC<{
       executeQuietly(webview, `window.isAndroid = false;\n${buildPrelude()}\n${contentJs}`)
       toggleShorts(hideShorts)
       syncUserStylesToWebview()
+      syncGuriToWebview()
       syncBlocklistToWebview()
       syncSettingsToWebview()
       refreshCanGoBack()
@@ -281,6 +289,7 @@ const DesktopTabView: React.FC<{
   useObserveEffect(settings$.showOriginalVideoTitle, () => syncSettingsToWebview())
   useObserveEffect(settings$.doubleTapToToggleHeader, () => syncSettingsToWebview())
   useObserveEffect(userStyles$, () => syncUserStylesToWebview())
+  useObserveEffect(guri$, () => syncGuriToWebview())
   useObserveEffect(blocklist$, () => syncBlocklistToWebview())
   useEffect(() => {
     if (!readyRef.current) return
@@ -339,6 +348,7 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
     `window.NouTubePreferH264 = ${settings$.preferH264.get() ? 'true' : 'false'};` +
     `window.NouTubeClickbaitThumbnail = ${JSON.stringify(settings$.clickbaitThumbnail.get())};` +
     `window.NouTubeUserStyles = ${JSON.stringify(getUserStylesSnapshot())};` +
+    `window.NouTubeGuri = ${JSON.stringify(getGuriContentSnapshot())};` +
     `window.NouTubeBlocklist = ${JSON.stringify(getBlocklistSnapshot())};`
   const contentSettings = getContentSettingsSnapshot()
   const preludeJs =
@@ -346,6 +356,7 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
     `window.NouTubePreferH264 = ${preferH264 ? 'true' : 'false'};` +
     `window.NouTubeClickbaitThumbnail = ${JSON.stringify(clickbaitThumbnail)};` +
     `window.NouTubeUserStyles = ${JSON.stringify(getUserStylesSnapshot())};` +
+    `window.NouTubeGuri = ${JSON.stringify(getGuriContentSnapshot())};` +
     `window.NouTubeBlocklist = ${JSON.stringify(getBlocklistSnapshot(blocklistState))};`
   const { userId, me } = useMe()
   const userAgent = resolveUserAgent(
@@ -434,6 +445,12 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
     ref?.executeJavaScript(`window.NouTube.setUserStyles(${value})`)
   }, [nativeRef])
 
+  const syncGuriToWebview = useCallback(() => {
+    const ref = nativeRef.current
+    const value = JSON.stringify(getGuriContentSnapshot())
+    ref?.executeJavaScript(`window.NouTube.setGuri(${value})`)
+  }, [nativeRef])
+
   const syncBlocklistToWebview = useCallback(() => {
     const ref = nativeRef.current
     const snapshot = getBlocklistSnapshot()
@@ -514,6 +531,7 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
         if (!isWeb) {
           toggleShorts(hideShorts)
           syncUserStylesToWebview()
+          syncGuriToWebview()
           syncBlocklistToWebview()
           syncSettingsToWebview()
         }
@@ -674,6 +692,7 @@ export const MainPageContent: React.FC<{ contentJs: string }> = ({ contentJs }) 
     }
   })
   useObserveEffect(userStyles$, () => syncUserStylesToWebview())
+  useObserveEffect(guri$, () => syncGuriToWebview())
   useObserveEffect(blocklist$, () => syncBlocklistToWebview())
 
   const onLoad = async (e: { nativeEvent: any }) => {
