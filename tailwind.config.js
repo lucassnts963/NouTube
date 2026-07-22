@@ -28,7 +28,10 @@ module.exports = {
         "accent-hover": "#F25A5F",
       },
       fontFamily: {
-        "mono-brand": ["IBM Plex Mono", "monospace"],
+        // Loaded via @expo-google-fonts/ibm-plex-* in app/_layout.tsx.
+        "mono-brand": ["IBMPlexMono_500Medium", "monospace"],
+        sans: ["IBMPlexSans_400Regular"],
+        mono: ["IBMPlexMono_500Medium", "monospace"],
       },
     },
   },

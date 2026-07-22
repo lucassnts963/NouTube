@@ -9,6 +9,22 @@ import { useObserveEffect } from '@legendapp/state/react'
 import { Slot } from 'expo-router'
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useEffect } from 'react'
+import * as SplashScreen from 'expo-splash-screen'
+import {
+  useFonts,
+  IBMPlexSans_400Regular,
+  IBMPlexSans_500Medium,
+  IBMPlexSans_600SemiBold,
+  IBMPlexSans_700Bold,
+} from '@expo-google-fonts/ibm-plex-sans'
+import {
+  IBMPlexMono_400Regular,
+  IBMPlexMono_500Medium,
+  IBMPlexMono_600SemiBold,
+} from '@expo-google-fonts/ibm-plex-mono'
+
+// Keep the splash up until the brand fonts (IBM Plex) are ready.
+void SplashScreen.preventAutoHideAsync()
 
 function RootLayoutContent() {
   useObserveEffect(settings$.theme, ({ value }) => {
@@ -38,6 +54,26 @@ function RootLayoutContent() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    IBMPlexSans_400Regular,
+    IBMPlexSans_500Medium,
+    IBMPlexSans_600SemiBold,
+    IBMPlexSans_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+  })
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      void SplashScreen.hideAsync()
+    }
+  }, [fontsLoaded, fontError])
+
+  if (!fontsLoaded && !fontError) {
+    return null
+  }
+
   return (
     <SafeAreaProvider>
       <RootLayoutContent />
