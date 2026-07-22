@@ -79,7 +79,7 @@ lanes**, for different users and opposite paradigms:
 |---|---|---|
 | Paradigm | **Whitelist** (allow-only) | **Blacklist** (block-only) |
 | Who | The kid / shared-device use — the child's mode | The owner's personal filtering |
-| Trigger | PIN-locked; when ON, only allow-listed channels/playlists are reachable, plus the extra filters (hide shorts/search/comments) for more control | Always-on personal preference: content *you* don't want to see |
+| Trigger | PIN-locked; when ON, only allow-listed channels/playlists are reachable, plus the extra filters (hide shorts/search/comments) and **Picture-in-Picture is blocked** (kid can't pop the video out) | Always-on personal preference: content *you* don't want to see |
 | Status | Fork-added (`states/guri.ts`, `content/guri.ts`) | Pre-existing, synced (`states/blocklist.ts`) |
 
 The whitelist **is** the essence of modo guri; the blocklist stays as the
