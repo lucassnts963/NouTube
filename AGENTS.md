@@ -91,8 +91,14 @@ bun run lint        # expo lint (eslint) — keep at 0 errors
   topology in `docs/FEATURES.md`.
 - Commit/push only when asked. Keep tests + lint green before committing.
 
-## Known TODOs / overlaps
+## Two lanes: modo guri vs blocklist (don't merge)
 
-See the "Overlap / consolidation notes" in `docs/FEATURES.md`. Short version:
-modo guri should compose the existing **blocklist** + **user-styles** rather than
-carry parallel CSS; the allow-list is the part that stays unique to modo guri.
+These are **intentionally separate** (see `docs/FEATURES.md`):
+- **Modo guri = whitelist** (allow-only), PIN-locked — the kid / shared-device
+  mode. When on, only allow-listed channels/playlists are reachable, plus extra
+  filters.
+- **Blocklist = blacklist** (block-only) — the owner's personal filtering of
+  content they don't want. Pre-existing and synced.
+
+Do not fold one into the other. Modo guri intentionally keeps its own enforcement
+CSS so a locked parental mode doesn't depend on user-toggleable builtins.

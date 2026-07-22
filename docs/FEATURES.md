@@ -70,25 +70,27 @@ Tabs (`states/tabs.ts`), proxy (`settings.proxy*`), share, embed video, deep lin
 | **Modo guri** (parental) — PIN lock, allow-list ("só isso aqui"), Restricted Mode, hide shorts/search/comments | `feat/modo-guri` | ⚠️ See overlap notes below. |
 | **Self-host sync** — in-app server config, email login, `nou_profiles` premium gate, `nou_history` table, migrations + guide | `feat/self-host-sync` | **Extends** the existing Supabase sync. |
 
-## ⚠️ Overlap / consolidation notes
+## Two intentional lanes (owner decision — do NOT merge)
 
-Modo guri is the one place with real overlap. Decisions so far:
+Modo guri and the blocklist look adjacent but are **two deliberately separate
+lanes**, for different users and opposite paradigms:
 
-- **Allow-list ("só isso aqui")** — KEEP in modo guri as an additional parental
-  control. It's a whitelist (only these channels/playlists reachable), the
-  opposite of the blocklist, so it's genuinely new. ✅ (owner decision)
-- **Hide shorts / comments** in modo guri currently ship as **parallel CSS** in
-  `content/guri.ts` / `lib/guri.ts`. This overlaps the existing **user-styles
-  builtins** (`hide-shorts-navbar`, `hide-community-posts`) and the `hideShorts`
-  setting. TODO: have modo guri drive those builtins instead of its own CSS.
-- **"Block a channel / keyword"** for parental use is already served by the
-  **blocklist**. Modo guri does not reimplement it, but it also doesn't compose
-  it. TODO: when modo guri is on, enforce + PIN-lock the existing blocklist,
-  surfacing it inside the guri panel rather than as a separate tab.
+| | **Modo guri** | **Blocklist** |
+|---|---|---|
+| Paradigm | **Whitelist** (allow-only) | **Blacklist** (block-only) |
+| Who | The kid / shared-device use — the child's mode | The owner's personal filtering |
+| Trigger | PIN-locked; when ON, only allow-listed channels/playlists are reachable, plus the extra filters (hide shorts/search/comments) for more control | Always-on personal preference: content *you* don't want to see |
+| Status | Fork-added (`states/guri.ts`, `content/guri.ts`) | Pre-existing, synced (`states/blocklist.ts`) |
 
-Net: modo guri should become the "parental shell" (PIN + lock) over the app's
-existing tools (blocklist + user-styles) plus what's genuinely new (allow-list,
-Restricted Mode).
+The whitelist **is** the essence of modo guri; the blocklist stays as the
+owner's own tool. **Do not fold one into the other** — that was an earlier idea
+and it's rejected.
+
+Minor, acceptable overlap: modo guri hides shorts/comments with its **own CSS**
+in `content/guri.ts` rather than reusing the `user-styles` builtins. That's on
+purpose — a PIN-locked parental mode must enforce independently of user-toggleable
+builtins, so keeping its enforcement self-contained is correct. Only dedupe
+selector strings if it ever causes drift.
 
 ## Branch topology
 
