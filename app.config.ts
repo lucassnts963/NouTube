@@ -29,7 +29,7 @@ module.exports = ({ config }: { config: ExpoConfig }) => {
     newArchEnabled: true,
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'jp.nonbili.noutube',
+      bundleIdentifier: 'dev.elucas.guri',
     },
     android: {
       versionCode,
@@ -37,10 +37,10 @@ module.exports = ({ config }: { config: ExpoConfig }) => {
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         monochromeImage: './assets/images/monochrome-icon.png',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#0C0C0F',
       },
       predictiveBackGestureEnabled: false,
-      package: 'jp.nonbili.noutube',
+      package: 'dev.elucas.guri',
       intentFilters,
     },
     web: {

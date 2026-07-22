@@ -1,5 +1,5 @@
-appId: jp.nonbili.noutube
-productName: NouTube
+appId: dev.elucas.guri
+productName: GuriTube
 directories:
   buildResources: build
 files:
