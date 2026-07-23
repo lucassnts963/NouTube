@@ -12,7 +12,7 @@ describe('isHistoryFilename', () => {
 })
 
 describe('parseHistoryJson', () => {
-  it('extracts video id, title, thumbnail and time', () => {
+  it('extracts video id, title, thumbnail and time', async () => {
     const json = JSON.stringify([
       {
         header: 'YouTube',
@@ -27,7 +27,7 @@ describe('parseHistoryJson', () => {
       { header: 'YouTube', title: 'Visited', titleUrl: 'https://www.youtube.com/channel/UCyyyy' },
     ])
 
-    const items = parseHistoryJson(json)
+    const items = await parseHistoryJson(json)
     expect(items).toHaveLength(1)
     expect(items[0].videoId).toBe('dQw4w9WgXcQ')
     expect(items[0].title).toBe('Never Gonna Give You Up')
@@ -36,14 +36,14 @@ describe('parseHistoryJson', () => {
     expect(items[0].updatedAt).toBe(Date.parse('2024-01-02T03:04:05.000Z'))
   })
 
-  it('returns empty for malformed input', () => {
-    expect(parseHistoryJson('not json')).toEqual([])
-    expect(parseHistoryJson('{}')).toEqual([])
+  it('returns empty for malformed input', async () => {
+    expect(await parseHistoryJson('not json')).toEqual([])
+    expect(await parseHistoryJson('{}')).toEqual([])
   })
 })
 
 describe('parseHistoryHtml', () => {
-  it('extracts entries and dedupes repeated videos', () => {
+  it('extracts entries and dedupes repeated videos', async () => {
     const html = `
       <div class="outer-cell">
         <div class="content-cell">
@@ -65,7 +65,7 @@ describe('parseHistoryHtml', () => {
         </div>
       </div>`
 
-    const items = parseHistoryHtml(html)
+    const items = await parseHistoryHtml(html)
     expect(items).toHaveLength(2)
     expect(items.map((x) => x.videoId).sort()).toEqual(['9bZkp7q19f0', 'dQw4w9WgXcQ'])
     const rick = items.find((x) => x.videoId === 'dQw4w9WgXcQ')!

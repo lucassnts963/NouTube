@@ -7,7 +7,7 @@ import { settings$, ZOOM_PRESETS } from '@/states/settings'
 import { Segmented } from '../picker/Segmented'
 import { NouMenu } from '../menu/NouMenu'
 import { getDocumentAsync } from 'expo-document-picker'
-import { importCsv, importHistory, importList, importZip, isHistoryFilename } from '@/lib/import'
+import { importCsv, importExtractedFiles, importHistory, importList, importZip, isHistoryFilename } from '@/lib/import'
 import { onClearData$, ui$ } from '@/states/ui'
 import NouTubeViewModule from '@/modules/nou-tube-view'
 import { showToast } from '@/lib/toast'
@@ -709,6 +709,8 @@ export const SettingsTransferContent: React.FC<{
   setImportingTakeout: React.Dispatch<React.SetStateAction<boolean>>
 }> = ({ importingList, setImportingList, importingTakeout, setImportingTakeout }) => {
   const isImporting = importingList || importingTakeout
+  const [takeoutProgress, setTakeoutProgress] = useState<{ done: number; total: number } | null>(null)
+  const onTakeoutProgress = (done: number, total: number) => setTakeoutProgress({ done, total })
 
   const onClickImportList = async () => {
     if (isImporting) {
@@ -748,6 +750,7 @@ export const SettingsTransferContent: React.FC<{
       type: ['application/zip', 'application/json', 'text/*'],
     })
     setImportingTakeout(true)
+    setTakeoutProgress(null)
     try {
       const asset = res.assets?.[0]
       if (asset) {
@@ -757,19 +760,14 @@ export const SettingsTransferContent: React.FC<{
           asset.name?.toLowerCase().endsWith('.zip')
 
         if (isZip) {
+          // The import progress screen is its own native Modal. Android can't
+          // reliably route touches (including its own close button) when two
+          // native Modals are visible at once, so close Settings first —
+          // same reason showConfirm() uses Alert.alert() instead of a modal.
+          ui$.settingsModalOpen.set(false)
           if (Platform.OS === 'android') {
             const files = await NouTubeViewModule.extractTakeoutCsvFiles(asset.uri)
-            let total = 0
-            for (const file of files) {
-              const response = await fetch(file.uri)
-              const text = await response.text()
-              total += isHistoryFilename(file.name)
-                ? await importHistory(text, file.name)
-                : await importCsv(text, file.name)
-            }
-            if (total === 0) {
-              showToast("Nothing recognized in zip — make sure it's a YouTube Takeout export")
-            }
+            await importExtractedFiles(files)
           } else {
             const response = await fetch(asset.uri)
             const data = await response.arrayBuffer()
@@ -780,14 +778,14 @@ export const SettingsTransferContent: React.FC<{
         } else if (isHistoryFilename(asset.name)) {
           const response = await fetch(asset.uri)
           const text = await response.text()
-          const count = await importHistory(text, asset.name)
+          const count = await importHistory(text, asset.name, onTakeoutProgress)
           if (count === 0) {
             showToast(`Unrecognized history file: ${asset.name}`)
           }
         } else {
           const response = await fetch(asset.uri)
           const text = await response.text()
-          const count = await importCsv(text, asset.name)
+          const count = await importCsv(text, asset.name, onTakeoutProgress)
           if (count === 0) {
             showToast(`Unrecognized CSV: ${asset.name}`)
           }
@@ -798,6 +796,7 @@ export const SettingsTransferContent: React.FC<{
       showToast('Import failed: ' + (e as Error).message)
     } finally {
       setImportingTakeout(false)
+      setTakeoutProgress(null)
     }
   }
 
@@ -817,7 +816,13 @@ export const SettingsTransferContent: React.FC<{
           />
           <SettingsActionRow
             label={t('settings.importTakeout')}
-            description="Takeout zip, CSV or watch history"
+            description={
+              importingTakeout
+                ? takeoutProgress && takeoutProgress.total > 0
+                  ? `Importing… ${takeoutProgress.done.toLocaleString()} / ${takeoutProgress.total.toLocaleString()}`
+                  : 'Reading file…'
+                : 'Takeout zip, CSV or watch history'
+            }
             icon="archive"
             onPress={() => {
               void onClickImportTakeout()
