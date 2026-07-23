@@ -22,6 +22,7 @@ import { PlaybackQualityModal } from '../modal/PlaybackQualityModal'
 import { ToolsModal } from '../modal/ToolsModal'
 import { ShareModal } from '../modal/ShareModal'
 import { LocalLibraryModal } from '../modal/LocalLibraryModal'
+import { ImportProgressModal } from '../modal/ImportProgressModal'
 import { MediaPlayerModal } from '../media/MediaPlayerModal'
 import { GuriModal } from '../modal/GuriModal'
 import { useLocales } from 'expo-localization'
@@ -89,6 +90,7 @@ export const MainPage: React.FC<{ contentJs: string }> = ({ contentJs }) => {
       <FolderModal />
       <HistoryModal />
       <QueueModal />
+      <ImportProgressModal />
       {nIf(!isWeb, <SettingsModal />)}
       <UrlModal />
       <CookieModal />
