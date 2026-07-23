@@ -1,51 +1,12 @@
 import { Bookmark, bookmarks$, newBookmark } from '@/states/bookmarks'
 import pp from 'papaparse'
 import * as cheerio from 'cheerio/slim'
-import { getPageType, getVideoId, getVideoThumbnail } from './page'
+import { getPageType, getThumbnail, getVideoId, getVideoThumbnail } from './page'
 import { showToast } from './toast'
 import { normalizeUrl } from './url'
 import JSZip from 'jszip'
 import { folders$ } from '@/states/folders'
 import { history$ } from '@/states/history'
-
-async function getOg(
-  url: string,
-  type: string,
-  retries = 2,
-): Promise<{ thumbnail?: string; title?: string }> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
-      const html = await res.text()
-      const $ = cheerio.load(html)
-
-      const title = $('meta[property="og:title"]').attr('content')
-      const thumbnail = $('meta[property="og:image"]').attr('content') || $('meta[property="og:thumbnail"]').attr('content')
-      
-      if (title || thumbnail) {
-        return { title, thumbnail }
-      }
-    } catch (e) {
-      console.error(`Attempt ${i + 1} failed for ${url}:`, e)
-      if (i < retries - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)))
-      }
-    }
-  }
-
-  // Fallback for YouTube channels if we have the ID in the URL or can derive it
-  if (type === 'yt-channel') {
-    const channelId = new URL(url).pathname.split('/').pop()
-    if (channelId?.startsWith('UC')) {
-      return {
-        thumbnail: `https://www.youtube.com/s/desktop/28b8682e/img/favicon_144x144.png`, // Generic fallback or we could use a better one if known
-      }
-    }
-  }
-
-  return {}
-}
 
 const channelIdRe = /^UC[A-Za-z0-9_-]{22}$/
 const videoIdRe = /^[A-Za-z0-9_-]{11}$/
@@ -86,14 +47,19 @@ export async function importCsv(csv: string, filename?: string): Promise<number>
 
   const shape = detectShape(items[0])
   let bookmarks: Bookmark[] = []
+  let kindLabel = 'items'
 
+  // No per-item network fetch: titles come from the CSV and video thumbnails are
+  // derived from the id. That keeps a big Takeout export instant instead of doing
+  // hundreds of sequential requests to youtube.com (which hang on mobile).
   if (shape === 'subscriptions') {
+    kindLabel = 'channels'
     for (const [id, url, title] of items) {
       if (!id || !url) continue
-      const { thumbnail } = await getOg(url, 'yt-channel')
-      bookmarks.push(newBookmark({ url, title, json: { thumbnail, id } }))
+      bookmarks.push(newBookmark({ url, title: title || '', json: { id } }))
     }
   } else if (shape === 'playlist-videos') {
+    kindLabel = 'videos'
     let folder = undefined
     if (filename) {
       const playlistName = filename.split('-')[0]
@@ -104,23 +70,24 @@ export async function importCsv(csv: string, filename?: string): Promise<number>
     for (const [id] of items) {
       if (!id) continue
       const url = `https://m.youtube.com/watch?v=${id}`
-      const { thumbnail, title } = await getOg(url, 'yt-video')
-      bookmarks.push(newBookmark({ url, title: title || '', json: { folder: folder?.id } }))
+      bookmarks.push(newBookmark({ url, title: '', json: { folder: folder?.id, thumbnail: getVideoThumbnail(id) } }))
     }
   } else if (shape === 'music-songs') {
+    kindLabel = 'songs'
     for (const [id, title] of items) {
       if (!id) continue
       const url = `https://music.youtube.com/watch?v=${id}`
-      bookmarks.push(newBookmark({ url, title }))
+      bookmarks.push(newBookmark({ url, title: title || '' }))
     }
   } else {
     return 0
   }
 
   if (!bookmarks.length) return 0
+  const count = bookmarks.length
   bookmarks$.importBookmarks(bookmarks)
-  showToast(`🎉 Imported ${bookmarks.length} links from ${filename}`)
-  return bookmarks.length
+  showToast(`🎉 Imported ${count} ${kindLabel}`)
+  return count
 }
 
 export interface ParsedHistoryItem {
@@ -289,9 +256,7 @@ export async function importList(list: string) {
       continue
     }
     const url = normalizeUrl(line)
-    let type = `${pageType.home}-${pageType.type}`
-    const { thumbnail, title } = await getOg(url, type)
-    bookmarks.push(newBookmark({ url, title: title || '', json: { thumbnail } }))
+    bookmarks.push(newBookmark({ url, title: '', json: { thumbnail: getThumbnail(url) } }))
   }
 
   if (bookmarks.length) {
