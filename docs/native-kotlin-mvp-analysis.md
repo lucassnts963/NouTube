@@ -1,12 +1,24 @@
 # Análise aprofundada: MVP de app Android nativo (Kotlin) inspirado no NouTube
 
-> Objetivo: avaliar a viabilidade de recriar, em **Kotlin nativo** (sem React
-> Native/Expo), a ideia que funciona bem no NouTube — **download via yt-dlp** +
-> **WebView como wrapper do YouTube/YouTube Music injetando JS/CSS** + **controle
-> de reprodução (play/pause/next/previous) com notificação de mídia**.
+> **⚠️ Nota de correção da arquitetura (importante).** As seções abaixo (2–4)
+> dissecam **como o NouTube funciona**: nele, o "player" é o player *web* do
+> YouTube dentro da WebView, controlado por JS. Isso continua valendo como
+> descrição do NouTube. **Mas o app que estamos construindo NÃO segue esse
+> desenho.** A arquitetura-alvo deste projeto é:
 >
-> Documento de fundamentação técnica. Não escreve o app ainda — dissseca o que
-> existe, explica *por que* funciona, e propõe a arquitetura do MVP.
+> - **WebView** = só para **navegar** e **baixar** (yt-dlp). Não reproduz.
+> - **Player nativo (ExoPlayer/Media3)** = o centro. Recebe um "link" e decide
+>   como tocar: **arquivo baixado** (foco inicial) ou **link do YouTube via
+>   streaming** (depois). Background + notificação são do Media3.
+>
+> Ou seja: o insight "o NouTube não tem player próprio" descreve o NouTube, e
+> **aqui a decisão é justamente ter um player nativo próprio**, começando pela
+> reprodução dos vídeos já baixados. A implementação em `../android-native/`
+> segue a arquitetura corrigida; veja o README de lá.
+>
+> Objetivo original do documento: fundamentar a viabilidade em Kotlin nativo,
+> reaproveitando as partes do NouTube que servem (download yt-dlp, WebView de
+> navegação, MediaSession/notificação).
 
 ---
 

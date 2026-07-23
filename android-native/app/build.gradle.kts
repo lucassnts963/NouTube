@@ -65,9 +65,11 @@ dependencies {
     implementation("androidx.webkit:webkit:1.11.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
-    // Media3: MediaSession + auto-generated media notification.
+    // Media3: native ExoPlayer + MediaSession + PlayerView + auto notification.
     implementation("androidx.media3:media3-common:1.4.1")
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.media3:media3-session:1.4.1")
+    implementation("androidx.media3:media3-ui:1.4.1")
 
     // yt-dlp for Android (bundles Python + yt-dlp + ffmpeg).
     implementation("io.github.junkfood02.youtubedl-android:library:0.17.3")

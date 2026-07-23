@@ -40,12 +40,6 @@ class NouWebView(context: Context) : WebView(context) {
 
     private var lastUrl = ""
 
-    // Keep the WebView "visible" even when the Activity is backgrounded, so YouTube's
-    // web player keeps decoding audio in background (matches the RN app's behavior).
-    override fun onWindowVisibilityChanged(visibility: Int) {
-        super.onWindowVisibilityChanged(VISIBLE)
-    }
-
     init {
         settings.apply {
             javaScriptEnabled = true
