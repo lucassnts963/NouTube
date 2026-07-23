@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
@@ -71,6 +72,7 @@ internal class NouYtDlp(private val context: Context) {
     request.addOption("--no-playlist")
     request.addOption("-R", "1")
     request.addOption("--socket-timeout", "5")
+    request.useWebViewCookies()
     val response = YoutubeDL.getInstance().execute(request)
     val json = JSONObject(response.out ?: throw Exception("yt-dlp returned empty format output"))
     val formats = (0 until json.optJSONArray("formats")?.length().orZero())
@@ -153,6 +155,7 @@ internal class NouYtDlp(private val context: Context) {
     request.addOption("--dump-single-json")
     request.addOption("-R", "1")
     request.addOption("--socket-timeout", "10")
+    request.useWebViewCookies()
     val response = YoutubeDL.getInstance().execute(request)
     val json = JSONObject(response.out ?: throw Exception("yt-dlp returned empty playlist output"))
 
@@ -195,6 +198,7 @@ internal class NouYtDlp(private val context: Context) {
     request.addOption("-f", if (isMp3) "bestaudio/best" else formatId)
     request.addOption("-o", "${tempDir.absolutePath}/%(title)s.%(ext)s")
     request.addOption("--no-playlist")
+    request.useWebViewCookies()
     if (isMp3) {
       request.addOption("--extract-audio")
       request.addOption("--audio-format", "mp3")
@@ -334,6 +338,36 @@ internal class NouYtDlp(private val context: Context) {
         method.name in candidateNames && method.parameterTypes.any { isUpdateChannelParameter(it, updateChannel) }
       }
     }
+  }
+
+  // Export the WebView's YouTube cookies to a Netscape cookies.txt so yt-dlp runs
+  // as the signed-in user. Without this, YouTube rejects the (separate) yt-dlp
+  // process with "Sign in to confirm you're not a bot".
+  private fun writeCookiesFile(): File? {
+    return try {
+      val cookieString = CookieManager.getInstance().getCookie("https://www.youtube.com")
+      if (cookieString.isNullOrBlank()) return null
+      val expiry = (System.currentTimeMillis() / 1000) + 60L * 60 * 24 * 365 * 10
+      val builder = StringBuilder("# Netscape HTTP Cookie File\n")
+      for (pair in cookieString.split(";")) {
+        val index = pair.indexOf('=')
+        if (index <= 0) continue
+        val name = pair.substring(0, index).trim()
+        val value = pair.substring(index + 1).trim()
+        if (name.isEmpty()) continue
+        builder.append(".youtube.com\tTRUE\t/\tTRUE\t$expiry\t$name\t$value\n")
+      }
+      val file = File(context.cacheDir, "yt-cookies.txt")
+      file.writeText(builder.toString())
+      file
+    } catch (e: Exception) {
+      Log.e("NouTubeView", "Failed to export cookies", e)
+      null
+    }
+  }
+
+  private fun YoutubeDLRequest.useWebViewCookies() {
+    writeCookiesFile()?.let { addOption("--cookies", it.absolutePath) }
   }
 
   private fun publishToDownloads(sourceFile: File): Uri {
